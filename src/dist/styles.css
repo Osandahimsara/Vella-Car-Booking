@@ -744,10 +744,10 @@ body {
 }
 
 .reserve-button {
-  background-color: #dbdbdb;
-  margin: 0 -3rem;
-  padding: 3rem;
-  text-align: right;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 @media (max-width: 650px) {
   .reserve-button {
@@ -2107,7 +2107,10 @@ footer {
 
 .loading-ellipsis {
   display: flex;
+  justify-content: center; /* Centers horizontally */
+  align-items: center;     /* Optional: centers vertically */
   gap: 0.5rem;
+  margin-top: 1rem;  
 
   span {
     width: 10px;
@@ -2142,10 +2145,10 @@ footer {
   }
 }
 
-html, body {
-  height: 100%;
+body {
   margin: 0;
   padding: 0;
+  height: 100vh;
 }
 
 
@@ -2155,61 +2158,57 @@ html, body {
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(35, 38, 35, 0.344); 
+  background: rgba(35, 38, 35, 0.18);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-
-  &__content {
-    background-color: #fff;
-    padding: 2rem 3rem;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 0 20px rgba(26, 25, 25, 0.388);
-    max-width: 90%;
-    width: 320px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    font-family: sans-serif;
-    font-size: 1rem;
-    color: #292a2978;
-  }
+}
+.success-popup__content {
+  background: #fff;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(60, 60, 60, 0.68);
+  min-width: 320px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.success-popup__icon {
+  font-size: 4.5rem;
+  color: #22c55e;
+  margin-bottom: 0.5rem;
+}
+.success-popup__icon svg {
+  display: block;
+  margin: 0 auto 0.5rem auto;
+}
 .success-popup__message {
   font-size: 2.05rem;
-  color: #020502; 
-  background-color: #ffffff; 
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(147, 154, 147, 0.664);
+  color: #222;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   text-align: center;
   line-height: 1.4;
-  font-weight: 500;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
-
-  &__icon {
-    font-size: 10.5rem;
-    color: #343131b3;
-  }
-
-  &__close {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    color: #888;
-    cursor: pointer;
-
-    &:hover {
-      color: #333;
-    }
-  }
+.success-popup__cancel {
+  margin-top: 1.5rem;
+  padding: 0.7rem 2.2rem;
+  background: #021c50;
+  color: #f8f8f8;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background 0.2s;
 }
-
+.success-popup__cancel:hover {
+  background: #e5e7eb;
+}
 
 /*# sourceMappingURL=styles.css.map */

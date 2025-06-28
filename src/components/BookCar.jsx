@@ -26,45 +26,49 @@ function BookCar() {
   const [designation, setdesignation] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bookingId, setBookingId] = useState("");
 
 
 
+  const confirmBooking = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-  // Confirm booking and send data to the backend
-  const confirmBooking = async (e) => {e.preventDefault();
-     setLoading(true); // Show loading
+  if (!name || !lastName || !phone || !designation || !email) {
+    const errorMsg = document.querySelector(".error-message");
+    errorMsg.style.display = "flex";
+    return;
+  }
 
-    if (!name || !lastName || !phone || !designation || !email) {
-      const errorMsg = document.querySelector(".error-message");
-      errorMsg.style.display = "flex";
-      return;
-    }
+  const bookingId = generateBookingId(); // Generate booking ID
 
-    const bookingData = {
-  carType,
-  pickUp,
-  dropOff,
-  pickTime,
-  pickUpTime,   
-  dropOffTime,  
-  dropTime,
-  driver, 
-  name,
-  lastName,
-  phone,
-  designation,
-  email,
-};
+  const bookingData = {
+    bookingId, 
+    carType,
+    pickUp,
+    dropOff,
+    pickTime,
+    pickUpTime,
+    dropOffTime,
+    dropTime,
+    driver,
+    name,
+    lastName,
+    phone,
+    designation,
+    email,
+  };
 
-     try {
+  try {
     const response = await axios.post("http://localhost:8000/api/bookings", bookingData);
+    setBookingId(response.data.bookingId); 
     setModal(false);
     setSuccessMessage(true);
     setTimeout(() => setSuccessMessage(false), 8000);
   } catch (error) {
     console.error("Error saving booking:", error);
   } finally {
-    setLoading(false); // Hide loading when done
+    setLoading(false);
   }
 };
 
@@ -95,6 +99,15 @@ function BookCar() {
       errorMsg.style.display = "none";
     }
   };
+
+function generateBookingId() {
+
+  const prefix = "VCB";
+  const number = Math.floor(100000 + Math.random() * 900000); 
+  return `#${prefix}${number}`;
+}
+
+
 
   // Disable page scroll when modal is displayed
   useEffect(() => {
@@ -281,15 +294,30 @@ function BookCar() {
         </div>
       </section>
 
-     {/* Success Message */}
+ {/* Success Message */}
 {successMessage && (
   <div className="success-popup">
     <div className="success-popup__content">
-      
-      <p className="success-popup__message">
-        Your reservation is complete!<br />
-        Check your email for confirmation.
-      </p>
+      <div className="success-popup__icon">
+        {/* Green checkmark SVG */}
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="32" fill="#22c55e"/>
+          <path d="M20 34L29 43L44 27" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+      <div className="success-popup__message">
+        <strong style={{fontSize: '2.2rem', color: '#222'}}>Success</strong>
+        <div style={{marginTop: '1rem', color: '#444', fontSize: '1.6rem', fontWeight: 400}}>
+          Your Booking ID: <b>{bookingId}</b><br/>
+          Check your email for a booking confirmation.<br />We’ll see you soon!
+        </div>
+      </div>
+      <button
+        className="success-popup__cancel"
+        onClick={() => setSuccessMessage(false)}
+      >
+        Cancel
+      </button>
     </div>
   </div>
 )}

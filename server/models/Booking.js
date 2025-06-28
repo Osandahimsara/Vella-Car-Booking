@@ -1,11 +1,12 @@
 class Booking {
   constructor({
+    bookingId, 
     carType,
     pickUp,
     dropOff,
     pickTime,
-    pickUpTime,    // <-- add this
-    dropOffTime,   // <-- add this
+    pickUpTime,
+    dropOffTime,
     dropTime,
     driver,
     name,
@@ -14,12 +15,13 @@ class Booking {
     designation,
     email,
   }) {
+    this.bookingId = bookingId; 
     this.carType = carType;
     this.pickUp = pickUp;
     this.dropOff = dropOff;
     this.pickTime = pickTime;
-    this.pickUpTime = pickUpTime;      // <-- add this
-    this.dropOffTime = dropOffTime;    // <-- add this
+    this.pickUpTime = pickUpTime;
+    this.dropOffTime = dropOffTime;
     this.dropTime = dropTime;
     this.driver = driver;
     this.name = name;

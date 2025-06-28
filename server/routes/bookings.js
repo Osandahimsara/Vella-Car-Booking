@@ -107,7 +107,7 @@ router.post("/", async (req, res) => {
     <!-- Left: Booking Details -->
     <td style="vertical-align: top; width: 70%;">
       <div style="font-family: Arial, sans-serif; max-width: 500px;">
-        <h2 style="color: #2d3748;">Booking Confirmation</h2>
+        <h2 style="color: #2d3748;">Car Booking Reservation</h2>
         <hr>
         <table style="width: 100%; border-collapse: collapse;">
          
@@ -156,7 +156,7 @@ router.post("/", async (req, res) => {
     await transporter.sendMail(adminMailOptions);
     await transporter.sendMail(userMailOptions);
 
-    res.status(201).json(result);
+   res.status(201).json({ bookingId: booking.bookingId });
   } catch (error) {
     console.log(error); 
     res.status(500).json({ error: error.message });
