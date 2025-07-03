@@ -59,7 +59,7 @@ function BookCar() {
 
      try {
   const response = await axios.post("http://localhost:8000/api/bookings", bookingData);
-  setBookingId(response.data.bookingId); // <-- Save bookingId
+  setBookingId(response.data.bookingId); 
   setModal(false);
   setSuccessMessage(true);
   setTimeout(() => setSuccessMessage(false), 8000);

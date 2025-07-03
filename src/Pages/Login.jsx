@@ -6,7 +6,6 @@ import "../dist/login.css";
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
   const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
@@ -15,73 +14,75 @@ const Login = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setShowError(false);
+    e.preventDefault();
+    setShowError(false);
+    setError("");
+
+    if (!username || !password) {
+      setError("All fields are required.");
+      setShowError(true);
+      return;
+    }
+
+    try {
+      // Call your backend login API
+      const response = await axios.post('http://localhost:8000/api/users/login', {
+        username,
+        password,
+      });
+
+      const user = response.data;
+
+      // Only allow admin login
+      if (user.role === "admin") {
+        localStorage.setItem('currentUser', JSON.stringify({ username: user.username, role: user.role }));
+        // Redirect to admin dashboard - FIXED ROUTE
+        navigate('/Adminpage'); // Changed from '/AdminDashboardPage'
+      } else {
+        setError("Only admin accounts can log in.");
+        setShowError(true);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || "Invalid username or password.");
+      setShowError(true);
+    }
+  };
+  
+ const handleForgotPassword = async () => {
   setError("");
-
-  if (!username || !password) {
-    setError("All fields are required.");
-    setShowError(true);
-    return;
-  }
-
+  setShowError(false);
+  setLoading(true); // Start loading
+  
   try {
-    // Call your backend login API
-    const response = await axios.post('http://localhost:8000/api/users/login', {
-      username,
-      password,
-    });
+    const response = await axios.post('http://localhost:8000/api/users/request', { username });
 
-    const user = response.data;
+    if (response.data.message === "User Correct") {
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Only allow admin login
-    if (user.role === "admin") {
-      localStorage.setItem('currentUser', JSON.stringify({ username: user.username, role: user.role }));
-      // Redirect to admin dashboard
-      navigate('/AdminDashboardPage');
+      await axios.post('http://localhost:8000/api/users/otp', { username, otp: otpCode });
+
+      setStep(2);
     } else {
-      setError("Only admin accounts can log in.");
+      setError("User not found.");
       setShowError(true);
     }
   } catch (error) {
-    setError(error.response?.data?.message || "Invalid username or password.");
+    setError(error.response?.data?.message || "User not found.");
     setShowError(true);
+  } finally {
+    setLoading(false); // Stop loading
   }
 };
-  
-  const handleForgotPassword = async () => {
-    setError(""); // Clear any previous errors when moving to the next step
-    setShowError(false);
-    try {
-        const response = await axios.post('http://localhost:5000/api/users/request', { username });
-
-        if (response.data.message === "User Correct") {
-            const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate OTP
-
-            // Send OTP to backend for saving
-            await axios.post('http://localhost:5000/api/users/otp', { username, otp: otpCode });
-
-            //setUsername(""); // Clear username after request
-            setStep(2);
-        } else {
-            setError("User not found.");
-            setShowError(true);
-        }
-    } catch (error) {
-        setError(error.response?.data?.message || "User not found.");
-        setShowError(true);
-    }
-};
-
-  
 
   const handleVerifyOtp = async () => {
-    setError(""); // Clear any previous errors when moving to the next step
+    setError("");
     setShowError(false);
     try {
-      await axios.post('http://localhost:5000/api/users/verify', { username, otp });
+      // FIXED: Use correct port 8000 instead of 5000
+      await axios.post('http://localhost:8000/api/users/verify', { username, otp });
       setStep(3);
     } catch (error) {
       setError("Invalid OTP.");
@@ -90,12 +91,17 @@ const Login = () => {
   };
 
   const handleResetPassword = async () => {
-    setError(""); // Clear any previous errors when moving to the next step
+    setError("");
     setShowError(false);
     try {
-      await axios.post('http://localhost:5000/api/users/reset-password', { username, newPassword });
+      // FIXED: Use correct port 8000 instead of 5000
+      await axios.post('http://localhost:8000/api/users/reset-password', { username, newPassword });
       setShowForgotPassword(false);
       setStep(1);
+      setUsername("");
+      setPassword("");
+      setOtp("");
+      setNewPassword("");
     } catch (error) {
       setError("Password reset failed.");
       setShowError(true);
@@ -141,24 +147,41 @@ const Login = () => {
           </>
         ) : (
           <div className="panel1 resetpanel">
-            <h2 className='resethead'>Reset Your Password</h2><hr></hr>
+            <h2 className='resethead'>Reset Your Password</h2><hr />
             {showError && <p className="error-message">{error}</p>}
-            {step === 1 && (
-              <>
-                <input className='userinput'
-                  type="text"
-                  placeholder="Enter Your Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-                <button  className="btnrequest" onClick={handleForgotPassword}>Request OTP</button>
-              </>
-            )}
+        {step === 1 && (
+  <>
+    <input 
+      className='userinput'
+      type="text"
+      placeholder="Enter Your Username"
+      value={username}
+      onChange={(e) => setUsername(e.target.value)}
+      disabled={loading}
+    />
+    <button 
+      className="btnrequest" 
+      onClick={handleForgotPassword}
+      disabled={loading}
+    >
+      {loading ? "Sending OTP..." : "Request OTP"}
+    </button>
+    {loading && (
+      <div className="loading-message">
+        <p> Sending OTP to your Admin Team...</p>
+        <div className="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    )}
+  </>
+)}
             {step === 2 && (
               <>
-              
                 <input
-                className='userinput'
+                  className='userinput'
                   type="text"
                   placeholder="Enter OTP"
                   value={otp}
@@ -170,7 +193,7 @@ const Login = () => {
             {step === 3 && (
               <>
                 <input
-                className='userinput'
+                  className='userinput'
                   type="password"
                   placeholder="New Password"
                   value={newPassword}
@@ -179,13 +202,22 @@ const Login = () => {
                 <button className="btnrequest" onClick={handleResetPassword}>Reset Password</button>
               </>
             )}
-            {/*<button onClick={() => setShowForgotPassword(false)}>Back to Login</button>*/}
+            <button 
+              className="btnrequest" 
+              onClick={() => {
+                setShowForgotPassword(false);
+                setStep(1);
+                setError("");
+                setShowError(false);
+              }}
+            >
+              Back to Login
+            </button>
           </div>
         )}
       </div>
     </div>
   );
 };
-
 
 export default Login;

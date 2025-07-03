@@ -13,8 +13,9 @@ app.use(express.json());
 const bookingsRoute = require("./routes/bookings");
 app.use("/api/bookings", bookingsRoute);
 
-const usersRoute = require("./routes/users");
-app.use("/api/users", usersRoute);
+
+const usersRouter = require("./routes/users");
+app.use("/api/users", usersRouter);
 
 // Start the server
 app.listen(PORT, () => {

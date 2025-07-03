@@ -28,7 +28,7 @@ router.post("/", async (req, res) => {
   const client = new MongoClient(Db);
   try {
     await client.connect();
-    const db = client.db("ToDoApp");
+    const db = client.db("Car_Booking");
     // Generate bookingId and add to booking data
     const bookingId = generateBookingId();
     const bookingData = { ...req.body, bookingId };

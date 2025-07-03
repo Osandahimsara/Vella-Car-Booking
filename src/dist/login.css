@@ -22,52 +22,100 @@
 }
 
 .panel1 {
-  height: 500px;
-  width: 550px;
+  height: 550px;
+  width: 600px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 20px;
+  padding: 30px;
+  border-radius: 20px;
+  background-color: #ff4c30e8;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .resethead{
-  font-size: 30px;
+  font-size: 32px;
   font-weight: bold;
+  margin-bottom: 20px;
+  color: #fff;
 }
-.btnrequest{
-  background-color: #034749;
-}
-.userinput{
-  width: 75%;
-  margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #10321e;
-  border-radius: 5px;
+
+/* Enhanced Button Styles */
+.btnrequest {
+  width: 70%;
+  padding: 14px 20px;
+  margin: 15px 0;
+  border: none;
+  border-radius: 25px;
   font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(45deg, #fff, #f8f9fa);
+  color: #ff4c30;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
 }
+
+.btnrequest:hover {
+  background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+  color: #e63946;
+}
+
+.btnrequest:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Input Styling */
+.userinput {
+  width: 75%;
+  margin: 15px 0;
+  padding: 15px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.userinput:focus {
+  border-color: #fff;
+  background: #fff;
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+}
+
+.userinput::placeholder {
+  color: #666;
+  font-weight: 500;
+}
+
 /* Left Panel */
 .sign-in-panel {
-  background-color: #ff4c30e8; /* Dark Blue */
+  background-color: #ff4c30e8;
   color: #fff;
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
 }
 
-.resetpanel{
-  background-color: #06350ca1; /* Dark Blue */
-  color: #fff;
-  border-radius: 20px;
-}
 .titleleft{
   font-weight: bold;
   color: #f8f8f8;
   font-size: 50px;
-  font-family: "Montserrat";
-  font-family: Arial, sans-serif;
+  font-family: "Montserrat", Arial, sans-serif;
 }
-
 
 /* Right Panel */
 .titleright{
@@ -76,6 +124,7 @@
   font-size: 30px;
   font-family: Arial, sans-serif;
 }
+
 .sign-up-panel {
   background-color: #ffffffb4;
   color: #3a3737;
@@ -84,53 +133,172 @@
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Forgot Password Link */
+.forgot-password {
+  cursor: pointer;
+  color: #007bff !important;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  margin: 10px 0;
+}
+
+.forgot-password:hover {
+  color: #0056b3 !important;
+  text-decoration: none;
+}
+
 .signup-form input {
   width: 100%;
   margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #10321e;
-  border-radius: 5px;
+  padding: 12px 15px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
   font-size: 16px;
+  transition: border-color 0.3s ease;
 }
 
+.signup-form input:focus {
+  border-color: #ff4d30;
+  outline: none;
+  box-shadow: 0 0 8px rgba(255, 77, 48, 0.2);
+}
 
 .sign-up-button {
-  border-radius: 20px;
-  border: 1px solid #f2f2f5;
-  background-color: #ff4d30;
+  border-radius: 25px;
+  border: none;
+  background: linear-gradient(45deg, #ff4d30, #ff6b4a);
   color: #fff;
   font-size: 16px;
   font-weight: bold;
-  padding: 12px 36px;
+  padding: 14px 40px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  transition: transform 80ms ease-in, background 0.2s;
-  margin: 0 auto;
+  transition: all 0.3s ease;
+  margin: 15px auto;
   display: block;
   cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 77, 48, 0.3);
 }
 
-
+.sign-up-button:hover {
+  background: linear-gradient(45deg, #e63946, #ff4d30);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 77, 48, 0.4);
+}
 
 .role-dropdown {
   width: 100%;
-  padding: 10px;
+  padding: 12px 15px;
   margin: 10px 0;
   font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
 }
 
-
-.sign-up-button:hover {
-  background-color: #b8cdc3;
-  color: #000301;
+.role-dropdown:focus {
+  border-color: #ff4d30;
+  outline: none;
 }
 
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,800");
 
 .error-message {
-  color: red;
+  color: #fff;
+  background: rgba(220, 38, 38, 0.2);
+  padding: 10px 15px;
+  border-radius: 8px;
   font-size: 0.875rem;
   margin-bottom: 1rem;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .panel1 {
+    width: 90%;
+    height: auto;
+    padding: 20px;
+  }
+  
+  .btnrequest {
+    width: 85%;
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+  
+  .userinput {
+    width: 85%;
+    padding: 12px 15px;
+  }
+  
+  .resethead {
+    font-size: 28px;
+  }
+}
+/* Loading Message Styles */
+.loading-message {
+  margin: 20px 0;
+  text-align: center;
+  color: #fff;
+}
+
+.loading-message p {
+  font-size: 16px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading-dots span {
+  display: block;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  animation: loading-bounce 1s infinite alternate;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes loading-bounce {
+  to {
+    opacity: 0.3;
+    transform: translateY(-10px);
+  }
+}
+
+/* Disabled Button State */
+.btnrequest:disabled {
+  background: rgba(255, 255, 255, 0.5);
+  color: #999;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btnrequest:disabled:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Disabled Input State */
+.userinput:disabled {
+  background: rgba(255, 255, 255, 0.6);
+  color: #666;
+  cursor: not-allowed;
 }

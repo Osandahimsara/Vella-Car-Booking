@@ -22,7 +22,6 @@ function Navbar() {
             <li><Link onClick={openNav} to="/Models">Vehicle Models</Link></li>
             <li><Link onClick={openNav} to="/Team">Our Drivers</Link></li>
             <li><Link onClick={openNav} to="/login">Login</Link></li> 
-            <li><Link onClick={openNav} to="/Adminpage">Admin</Link></li> 
           </ul>
         </div>
 
@@ -38,7 +37,6 @@ function Navbar() {
             <li><Link className="models-link" to="/Models">Vehicle Models</Link></li>
             <li><Link className="team-link" to="/Team">Our Drivers</Link></li>
             <li><Link className="login-link" to="/login">Login</Link></li> 
-             <li><Link className="login-link" to="/Adminpage">Admin</Link></li> 
           </ul>
           <div className="mobile-hamb" onClick={openNav}>
             <i className="fa-solid fa-bars"></i>
