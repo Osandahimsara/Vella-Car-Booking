@@ -1,3 +1,5 @@
+import "../dist/footer.css"
+
 function Footer() {
   return (
     <>

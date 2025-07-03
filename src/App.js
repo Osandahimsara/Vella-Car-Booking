@@ -1,24 +1,27 @@
-
-import "../src/dist/styles.css";
-import About from "./Pages/About";
 import Home from "./Pages/Home";
 import Navbar from "../src/components/Navbar";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Models from "./Pages/Models";
 import Team from "./Pages/Team";
-import Contact from "./Pages/Contact";
-
+import Login from "./Pages/Login";
+import AdminPage from "./Pages/Admin";
+import BookCar from "./components/BookCar";
 
 function App() {
+  const location = useLocation();
+  // Hide Navbar on admin page
+  const hideNavbar = location.pathname === "/Adminpage";
+
   return (
     <>
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       <Routes>
         <Route index path="/" element={<Home />} />
-        <Route path="about" element={<About />} />
         <Route path="models" element={<Models />} />
         <Route path="team" element={<Team />} />
-        <Route path="contact" element={<Contact />} />
+        <Route path="login" element={<Login />} />
+        <Route path="Adminpage" element={<AdminPage />} />
+        <Route path="bookcar" element={<BookCar />} />
       </Routes>
     </>
   );

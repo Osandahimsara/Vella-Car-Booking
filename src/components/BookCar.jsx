@@ -6,7 +6,8 @@ import CarToyota from "../images/cars-big/toyotacamry.jpg";
 import CarBmw from "../images/cars-big/bmw320.jpg";
 import CarMercedes from "../images/cars-big/benz.jpg";
 import CarPassat from "../images/cars-big/passatcc.jpg";
-
+import "../dist/book.css";
+import Footer from "./Footer";
 
 function BookCar() {
   const [modal, setModal] = useState(false); // Modal state
@@ -26,50 +27,47 @@ function BookCar() {
   const [designation, setdesignation] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [bookingId, setBookingId] = useState("");
 
 
 
-  const confirmBooking = async (e) => {
-  e.preventDefault();
-  setLoading(true);
 
-  if (!name || !lastName || !phone || !designation || !email) {
-    const errorMsg = document.querySelector(".error-message");
-    errorMsg.style.display = "flex";
-    return;
-  }
+  // Confirm booking and send data to the backend
+  const confirmBooking = async (e) => {e.preventDefault();
+     setLoading(true); // Show loading
 
-  const bookingId = generateBookingId(); // Generate booking ID
+    if (!name || !lastName || !phone || !designation || !email) {
+      const errorMsg = document.querySelector(".error-message");
+      errorMsg.style.display = "flex";
+      return;
+    }
 
-  const bookingData = {
-    bookingId, 
-    carType,
-    pickUp,
-    dropOff,
-    pickTime,
-    pickUpTime,
-    dropOffTime,
-    dropTime,
-    driver,
-    name,
-    lastName,
-    phone,
-    designation,
-    email,
-  };
+    const bookingData = {
+  carType,
+  pickUp,
+  dropOff,
+  pickTime,
+  pickUpTime,   
+  dropOffTime,  
+  dropTime,
+  driver, 
+  name,
+  lastName,
+  phone,
+  designation,
+  email,
+};
 
-  try {
-    const response = await axios.post("http://localhost:8000/api/bookings", bookingData);
-    setBookingId(response.data.bookingId); 
-    setModal(false);
-    setSuccessMessage(true);
-    setTimeout(() => setSuccessMessage(false), 8000);
-  } catch (error) {
-    console.error("Error saving booking:", error);
-  } finally {
-    setLoading(false);
-  }
+     try {
+  const response = await axios.post("http://localhost:8000/api/bookings", bookingData);
+  setBookingId(response.data.bookingId); // <-- Save bookingId
+  setModal(false);
+  setSuccessMessage(true);
+  setTimeout(() => setSuccessMessage(false), 8000);
+} catch (error) {
+  console.error("Error saving booking:", error);
+} finally {
+  setLoading(false);
+}
 };
 
   // Handle modal inputs
@@ -100,15 +98,6 @@ function BookCar() {
     }
   };
 
-function generateBookingId() {
-
-  const prefix = "VCB";
-  const number = Math.floor(100000 + Math.random() * 900000); 
-  return `#${prefix}${number}`;
-}
-
-
-
   // Disable page scroll when modal is displayed
   useEffect(() => {
     document.body.style.overflow = modal ? "hidden" : "auto";
@@ -119,7 +108,7 @@ function generateBookingId() {
     const doneMsg = document.querySelector(".booking-done");
     doneMsg.style.display = "none";
   };
-
+const [bookingId, setBookingId] = useState("");
   // Show car image based on selected car type
   let imgUrl;
   switch (carImg) {
@@ -292,36 +281,36 @@ function generateBookingId() {
             </div>
           </div>
         </div>
+        <Footer />
       </section>
 
- {/* Success Message */}
+     {/* Success Message */}
 {successMessage && (
-  <div className="success-popup">
-    <div className="success-popup__content">
-      <div className="success-popup__icon">
-        {/* Green checkmark SVG */}
-        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="32" fill="#22c55e"/>
-          <path d="M20 34L29 43L44 27" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
-      <div className="success-popup__message">
-        <strong style={{fontSize: '2.2rem', color: '#222'}}>Success</strong>
-        <div style={{marginTop: '1rem', color: '#444', fontSize: '1.6rem', fontWeight: 400}}>
-          Your Booking ID: <b>{bookingId}</b><br/>
-          Check your email for a booking confirmation.<br />We’ll see you soon!
+  <div className="success-popup-overlay">
+    <div className="success-popup-card-row">
+      <div className="success-popup-icon-col">
+        <div className="success-popup-check">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="36" fill="#4ade80"/>
+            <polyline points="26,42 38,54 56,30" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
       </div>
-      <button
-        className="success-popup__cancel"
-        onClick={() => setSuccessMessage(false)}
-      >
-        Cancel
-      </button>
+      <div className="success-popup-text-col">
+        <h2 className="success-popup-title">Success</h2>
+        <div className="success-popup-text">
+          {bookingId && (
+            <>
+              <strong>Your Booking ID:</strong> {bookingId}<br />
+            </>
+          )}
+          Check your email for a booking confirmation.<br />
+          We’ll see you soon!
+        </div>
+      </div>
     </div>
   </div>
 )}
-
 
 
       {/* Modal */}

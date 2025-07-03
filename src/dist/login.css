@@ -1,0 +1,136 @@
+/* Global Styling */
+.main{
+  background-image: url('../images/banners/bg-contact.png');
+}
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Split Panels */
+.panel {
+  height: 500px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.panel1 {
+  height: 500px;
+  width: 550px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.resethead{
+  font-size: 30px;
+  font-weight: bold;
+}
+.btnrequest{
+  background-color: #034749;
+}
+.userinput{
+  width: 75%;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #10321e;
+  border-radius: 5px;
+  font-size: 16px;
+}
+/* Left Panel */
+.sign-in-panel {
+  background-color: #ff4c30e8; /* Dark Blue */
+  color: #fff;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.resetpanel{
+  background-color: #06350ca1; /* Dark Blue */
+  color: #fff;
+  border-radius: 20px;
+}
+.titleleft{
+  font-weight: bold;
+  color: #f8f8f8;
+  font-size: 50px;
+  font-family: "Montserrat";
+  font-family: Arial, sans-serif;
+}
+
+
+/* Right Panel */
+.titleright{
+  font-weight: bold;
+  color: #070b09;
+  font-size: 30px;
+  font-family: Arial, sans-serif;
+}
+.sign-up-panel {
+  background-color: #ffffffb4;
+  color: #3a3737;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.signup-form input {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #10321e;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+
+.sign-up-button {
+  border-radius: 20px;
+  border: 1px solid #f2f2f5;
+  background-color: #ff4d30;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 12px 36px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in, background 0.2s;
+  margin: 0 auto;
+  display: block;
+  cursor: pointer;
+}
+
+
+
+.role-dropdown {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+
+.sign-up-button:hover {
+  background-color: #b8cdc3;
+  color: #000301;
+}
+
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,800");
+
+.error-message {
+  color: red;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}

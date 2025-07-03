@@ -14,6 +14,7 @@ class Booking {
     phone,
     designation,
     email,
+    
   }) {
     this.bookingId = bookingId; 
     this.carType = carType;

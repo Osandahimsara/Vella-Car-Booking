@@ -4,7 +4,7 @@ const { MongoClient } = require("mongodb");
 const Booking = require("../models/Booking");
 const nodemailer = require("nodemailer");
 const path = require('path');
-require("dotenv").config();
+require ("dotenv").config();
 
 
 const Db = process.env.MONGO_URL;
@@ -17,14 +17,23 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+function generateBookingId() {
+  const prefix = "DA";
+  const number = Math.floor(100000 + Math.random() * 900000); // 6 digits
+  return `#${prefix}${number}`;
+}
+
 // POST /api/bookings - Create a new booking and send email
 router.post("/", async (req, res) => {
   const client = new MongoClient(Db);
   try {
     await client.connect();
     const db = client.db("ToDoApp");
-    const booking = new Booking(req.body);
-    const result = await db.collection("bookings").insertOne(booking);
+    // Generate bookingId and add to booking data
+    const bookingId = generateBookingId();
+    const bookingData = { ...req.body, bookingId };
+    const booking = new Booking(bookingData);
+    await db.collection("bookings").insertOne(booking);
 
 
   // Admin email 
@@ -42,6 +51,10 @@ router.post("/", async (req, res) => {
         <h2 style="color: #2d3748;">Car Booking Reservation</h2>
         <hr>
         <table style="width: 100%; border-collapse: collapse;">
+         <tr>
+                  <td style="padding: 8px;"><strong>Booking ID:</strong></td>
+                  <td style="padding: 8px;">${booking.bookingId}</td>
+          </tr>
           <tr>
             <td style="padding: 8px;"><strong>Name:</strong></td>
             <td style="padding: 8px;">${booking.name} ${booking.lastName}</td>
@@ -107,10 +120,13 @@ router.post("/", async (req, res) => {
     <!-- Left: Booking Details -->
     <td style="vertical-align: top; width: 70%;">
       <div style="font-family: Arial, sans-serif; max-width: 500px;">
-        <h2 style="color: #2d3748;">Car Booking Reservation</h2>
+        <h2 style="color: #2d3748;">Booking Confirmation</h2>
         <hr>
         <table style="width: 100%; border-collapse: collapse;">
-         
+         <tr>
+                  <td style="padding: 8px;"><strong>Booking ID:</strong></td>
+                  <td style="padding: 8px;">${booking.bookingId}</td>
+         </tr>
           <tr>
             <td style="padding: 8px;"><strong>Pick-Up Date & Time:</strong></td>
             <td style="padding: 8px;">${booking.pickTime} ${booking.pickUpTime ? '| ' + booking.pickUpTime : ''}</td>
@@ -156,7 +172,7 @@ router.post("/", async (req, res) => {
     await transporter.sendMail(adminMailOptions);
     await transporter.sendMail(userMailOptions);
 
-   res.status(201).json({ bookingId: booking.bookingId });
+    res.status(201).json({ bookingId: booking.bookingId });
   } catch (error) {
     console.log(error); 
     res.status(500).json({ error: error.message });

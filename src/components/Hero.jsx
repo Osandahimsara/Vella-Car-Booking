@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import BgShape from "../images/hero/hero-bg.png";
 import HeroCar from "../images/hero/main-car.png";
 import { useEffect, useState } from "react";
-
+import "../dist/hero.css";
 function Hero() {
   const [goUp, setGoUp] = useState(false);
 
@@ -39,14 +39,14 @@ function Hero() {
             <div className="hero-content__text">
               <h4>Plan your trip now</h4>
               <h1>
-                Save <span>big</span> with our car rental
+                Save <span>Time</span> with our car Booking
               </h1>
               
               <div className="hero-content__text__btns">
                 <Link
                   onClick={bookBtn}
                   className="hero-content__text__btns__book-ride"
-                  to="/"
+                  to="/bookcar"
                 >
                   Book Ride &nbsp; <i className="fa-solid fa-circle-check"></i>
                 </Link>
