@@ -1,6 +1,6 @@
 import Hero from "../components/Hero";
 import Footer from "../components/Footer";
-import "../dist/home.css";
+import "../CSS/home.css";
 
 function Home() {
   return (

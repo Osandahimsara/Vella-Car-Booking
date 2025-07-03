@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import "../dist/login.css";
+import "../CSS/login.css";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -15,20 +15,21 @@ const Login = () => {
   const [newPassword, setNewPassword] = useState("");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false); // Added this
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setShowError(false);
     setError("");
+    setShowErrorPopup(false); // Reset popup
 
     if (!username || !password) {
       setError("All fields are required.");
-      setShowError(true);
+      setShowErrorPopup(true); // Show popup instead of inline
       return;
     }
 
     try {
-      // Call your backend login API
       const response = await axios.post('http://localhost:8000/api/users/login', {
         username,
         password,
@@ -36,77 +37,100 @@ const Login = () => {
 
       const user = response.data;
 
-      // Only allow admin login
       if (user.role === "admin") {
         localStorage.setItem('currentUser', JSON.stringify({ username: user.username, role: user.role }));
-        // Redirect to admin dashboard - FIXED ROUTE
-        navigate('/Adminpage'); // Changed from '/AdminDashboardPage'
+        navigate('/Adminpage');
       } else {
         setError("Only admin accounts can log in.");
-        setShowError(true);
+        setShowErrorPopup(true); // Show popup instead of inline
       }
     } catch (error) {
       setError(error.response?.data?.message || "Invalid username or password.");
-      setShowError(true);
+      setShowErrorPopup(true); // Show popup instead of inline
+      
+      // Auto-close after 4 seconds
+      setTimeout(() => {
+        setShowErrorPopup(false);
+      }, 4000);
     }
   };
   
- const handleForgotPassword = async () => {
+  const handleForgotPassword = async () => {
+    setError("");
+    setShowError(false);
+    setLoading(true);
+    
+    try {
+      const response = await axios.post('http://localhost:8000/api/users/request', { username });
+
+      if (response.data.message === "User Correct") {
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await axios.post('http://localhost:8000/api/users/otp', { username, otp: otpCode });
+        setStep(2);
+      } else {
+        setError("User not found.");
+        setShowError(true);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || "User not found.");
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
   setError("");
   setShowError(false);
-  setLoading(true); // Start loading
+  setShowErrorPopup(false); // Reset popup
   
   try {
-    const response = await axios.post('http://localhost:8000/api/users/request', { username });
-
-    if (response.data.message === "User Correct") {
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      await axios.post('http://localhost:8000/api/users/otp', { username, otp: otpCode });
-
-      setStep(2);
-    } else {
-      setError("User not found.");
-      setShowError(true);
-    }
+    await axios.post('http://localhost:8000/api/users/verify', { username, otp });
+    setStep(3);
   } catch (error) {
-    setError(error.response?.data?.message || "User not found.");
-    setShowError(true);
-  } finally {
-    setLoading(false); // Stop loading
+    setError("Invalid OTP.");
+    setShowErrorPopup(true); // Show popup instead of inline
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      setShowErrorPopup(false);
+    }, 3000);
   }
 };
 
-  const handleVerifyOtp = async () => {
-    setError("");
-    setShowError(false);
-    try {
-      // FIXED: Use correct port 8000 instead of 5000
-      await axios.post('http://localhost:8000/api/users/verify', { username, otp });
-      setStep(3);
-    } catch (error) {
-      setError("Invalid OTP.");
-      setShowError(true);
-    }
-  };
-
-  const handleResetPassword = async () => {
-    setError("");
-    setShowError(false);
-    try {
-      // FIXED: Use correct port 8000 instead of 5000
-      await axios.post('http://localhost:8000/api/users/reset-password', { username, newPassword });
-      setShowForgotPassword(false);
-      setStep(1);
-      setUsername("");
-      setPassword("");
-      setOtp("");
-      setNewPassword("");
-    } catch (error) {
-      setError("Password reset failed.");
-      setShowError(true);
-    }
-  };
+const handleResetPassword = async () => {
+  setError("");
+  setShowError(false);
+  setShowErrorPopup(false); // Reset popup
+  
+  try {
+    await axios.post('http://localhost:8000/api/users/reset-password', { username, newPassword });
+    setShowForgotPassword(false);
+    setStep(1);
+    setUsername("");
+    setPassword("");
+    setOtp("");
+    setNewPassword("");
+    
+    // Show success message
+    setError("Password reset successfully! You can now login with your new password.");
+    setShowErrorPopup(true);
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      setShowErrorPopup(false);
+    }, 3000);
+    
+  } catch (error) {
+    setError("Password reset failed.");
+    setShowErrorPopup(true); // Show popup instead of inline
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      setShowErrorPopup(false);
+    }, 3000);
+  }
+};
 
   return (
     <div className="main">
@@ -119,7 +143,7 @@ const Login = () => {
             <div className="panel sign-up-panel">
               <h1 className="titleright">Log In to Your Account</h1>
               <form className="signup-form" onSubmit={handleSubmit}>
-                {showError && <p className="error-message">{error}</p>}
+                {/* Removed inline error message */}
                 <input
                   type="text"
                   placeholder="Username"
@@ -147,37 +171,40 @@ const Login = () => {
           </>
         ) : (
           <div className="panel1 resetpanel">
-            <h2 className='resethead'>Reset Your Password</h2><hr />
-            {showError && <p className="error-message">{error}</p>}
-        {step === 1 && (
-  <>
-    <input 
-      className='userinput'
-      type="text"
-      placeholder="Enter Your Username"
-      value={username}
-      onChange={(e) => setUsername(e.target.value)}
-      disabled={loading}
-    />
-    <button 
-      className="btnrequest" 
-      onClick={handleForgotPassword}
-      disabled={loading}
-    >
-      {loading ? "Sending OTP..." : "Request OTP"}
-    </button>
-    {loading && (
-      <div className="loading-message">
-        <p> Sending OTP to your Admin Team...</p>
-        <div className="loading-dots">
-          <span></span>
-          <span></span>
-          <span></span>
+  <h2 className='resethead'>Reset Your Password</h2><hr />
+  {/* Remove this line: {showError && <p className="error-message">{error}</p>} */}
+  
+  {step === 1 && (
+    <>
+      <input 
+        className='userinput'
+        type="text"
+        placeholder="Enter Your Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        disabled={loading}
+      />
+      <button 
+        className="btnrequest" 
+        onClick={handleForgotPassword}
+        disabled={loading}
+      >
+        {loading ? "Sending OTP..." : "Request OTP"}
+      </button>
+      {loading && (
+        <div className="loading-message">
+          <p>📧 Sending OTP to your Admin Team...</p>
+          <div className="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
-      </div>
-    )}
-  </>
-)}
+      )}
+    </>
+  )}
+  
+  
             {step === 2 && (
               <>
                 <input
@@ -209,6 +236,7 @@ const Login = () => {
                 setStep(1);
                 setError("");
                 setShowError(false);
+                setLoading(false);
               }}
             >
               Back to Login
@@ -216,6 +244,28 @@ const Login = () => {
           </div>
         )}
       </div>
+      
+      {/* Error Popup */}
+      {showErrorPopup && (
+        <div className="error-popup-overlay">
+          <div className="error-popup">
+            <div className="error-popup-header">
+              <h3>{error.includes("successfully") ? "✅ Success" : "⚠️ Login Failed"}</h3>
+            </div>
+            <div className="error-popup-body">
+              <p>{error}</p>
+            </div>
+            <div className="error-popup-footer">
+              <button 
+                className="error-popup-btn"
+                onClick={() => setShowErrorPopup(false)}
+              >
+                {error.includes("successfully") ? "OK" : "Try Again"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

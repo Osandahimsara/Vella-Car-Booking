@@ -5,7 +5,8 @@ import Models from "./Pages/Models";
 import Team from "./Pages/Team";
 import Login from "./Pages/Login";
 import AdminPage from "./Pages/Admin";
-import BookCar from "./components/BookCar";
+import BookCar from "./Pages/BookCar";
+
 
 function App() {
   const location = useLocation();

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import "../dist/admin.css"
+import "../CSS/admin.css"
 
 const AdminPage = () => {
   const [totalVehicles, setTotalVehicles] = useState(0);

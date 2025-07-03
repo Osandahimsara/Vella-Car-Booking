@@ -6,8 +6,8 @@ import CarToyota from "../images/cars-big/toyotacamry.jpg";
 import CarBmw from "../images/cars-big/bmw320.jpg";
 import CarMercedes from "../images/cars-big/benz.jpg";
 import CarPassat from "../images/cars-big/passatcc.jpg";
-import "../dist/book.css";
-import Footer from "./Footer";
+import "../CSS/book.css";
+import Footer from "../components/Footer";
 
 function BookCar() {
   const [modal, setModal] = useState(false); // Modal state
@@ -285,33 +285,52 @@ const [bookingId, setBookingId] = useState("");
       </section>
 
      {/* Success Message */}
+
 {successMessage && (
   <div className="success-popup-overlay">
     <div className="success-popup-card-row">
+      <button 
+        className="success-popup-close-btn"
+        onClick={() => setSuccessMessage(false)}
+      >
+        ✕
+      </button>
+      
       <div className="success-popup-icon-col">
         <div className="success-popup-check">
-          <svg width="80" height="80" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="36" fill="#4ade80"/>
-            <polyline points="26,42 38,54 56,30" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="#4ade80" stroke="#22c55e" strokeWidth="2"/>
+            <polyline points="30,52 45,67 70,35" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
       </div>
+      
       <div className="success-popup-text-col">
-        <h2 className="success-popup-title">Success</h2>
+        <h2 className="success-popup-title">Booking Confirmed!</h2>
         <div className="success-popup-text">
           {bookingId && (
             <>
-              <strong>Your Booking ID:</strong> {bookingId}<br />
+              <strong>Your Booking ID:</strong><br />
+              <span className="booking-id-highlight">{bookingId}</span><br /><br />
             </>
           )}
-          Check your email for a booking confirmation.<br />
-          We’ll see you soon!
+          ✅ <strong>Confirmation email sent!</strong><br />
+          Check your email for booking details<br />
+          We'll see you soon!
         </div>
+      </div>
+      
+      <div className="success-popup-footer">
+        <button 
+          className="success-popup-action-btn"
+          onClick={() => setSuccessMessage(false)}
+        >
+          Awesome!
+        </button>
       </div>
     </div>
   </div>
 )}
-
 
       {/* Modal */}
       <div className={`booking-modal ${modal ? "active-modal" : ""}`}>

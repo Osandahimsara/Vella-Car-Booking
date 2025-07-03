@@ -5,7 +5,7 @@ import CarImg3 from "../images/cars-big/toyota-box.png";
 import CarImg4 from "../images/cars-big/bmw-box.png";
 import CarImg5 from "../images/cars-big/benz-box.png";
 import CarImg6 from "../images/cars-big/passat-box.png";
-import "../dist/models.css";
+import "../CSS/models.css";
 
 function Models() {
   return (
