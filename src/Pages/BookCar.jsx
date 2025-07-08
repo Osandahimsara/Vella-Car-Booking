@@ -8,6 +8,7 @@ import CarMercedes from "../images/cars-big/benz.jpg";
 import CarPassat from "../images/cars-big/passatcc.jpg";
 import "../CSS/book.css";
 import Footer from "../components/Footer";
+import citiesData from "../components/cities.json";
 
 function BookCar() {
   const [modal, setModal] = useState(false); // Modal state
@@ -27,55 +28,240 @@ function BookCar() {
   const [designation, setdesignation] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cities, setCities] = useState([]);
+  const [bookingId, setBookingId] = useState("");
 
+  // Add validation error states
+  const [errors, setErrors] = useState({
+    name: "",
+    lastName: "",
+    phone: "",
+    designation: "",
+    email: ""
+  });
 
+  // Load cities from JSON file when component mounts
+  useEffect(() => {
+    loadCitiesFromJSON();
+  }, []);
 
+  // Alternative approach - grouped by districts
+  const loadCitiesFromJSON = () => {
+    try {
+      const cityOptions = [];
+      
+      // Loop through each district
+      Object.keys(citiesData).forEach(district => {
+        // Add district header (disabled option)
+        cityOptions.push({
+          value: '',
+          label: `--- ${district} District ---`,
+          disabled: true
+        });
+        
+        // Add all cities from this district
+        citiesData[district].cities.forEach(city => {
+          cityOptions.push({
+            value: `${city}, ${district}`,
+            label: `${city}`,
+            disabled: false
+          });
+        });
+      });
 
-  // Confirm booking and send data to the backend
-  const confirmBooking = async (e) => {e.preventDefault();
-     setLoading(true); // Show loading
+      setCities(cityOptions);
+      
+    } catch (error) {
+      console.error("Error loading cities:", error);
+      setCities([
+        { value: "Colombo", label: "Colombo", disabled: false },
+        { value: "Kandy", label: "Kandy", disabled: false },
+        { value: "Galle", label: "Galle", disabled: false }
+      ]);
+    }
+  };
 
-    if (!name || !lastName || !phone || !designation || !email) {
+  // Validation functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9+\-\s()]{10,15}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  };
+
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-Z\s]{2,30}$/;
+    return nameRegex.test(name);
+  };
+
+  // Real-time validation handlers
+  const handleName = (e) => {
+    const value = e.target.value;
+    setName(value);
+    
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, name: "First name is required" }));
+    } else if (!validateName(value)) {
+      setErrors(prev => ({ ...prev, name: "First name should only contain letters (2-30 characters)" }));
+    } else {
+      setErrors(prev => ({ ...prev, name: "" }));
+    }
+  };
+
+  const handleLastName = (e) => {
+    const value = e.target.value;
+    setLastName(value);
+    
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, lastName: "Last name is required" }));
+    } else if (!validateName(value)) {
+      setErrors(prev => ({ ...prev, lastName: "Last name should only contain letters (2-30 characters)" }));
+    } else {
+      setErrors(prev => ({ ...prev, lastName: "" }));
+    }
+  };
+
+  const handlePhone = (e) => {
+    const value = e.target.value;
+    setPhone(value);
+    
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, phone: "Phone number is required" }));
+    } else if (!validatePhone(value)) {
+      setErrors(prev => ({ ...prev, phone: "Please enter a valid phone number (10-15 digits)" }));
+    } else {
+      setErrors(prev => ({ ...prev, phone: "" }));
+    }
+  };
+
+  const handledesignation = (e) => {
+    const value = e.target.value;
+    setdesignation(value);
+    
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, designation: "Designation is required" }));
+    } else if (value.length < 2) {
+      setErrors(prev => ({ ...prev, designation: "Designation must be at least 2 characters" }));
+    } else {
+      setErrors(prev => ({ ...prev, designation: "" }));
+    }
+  };
+
+  const handleEmail = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, email: "Email address is required" }));
+    } else if (!validateEmail(value)) {
+      setErrors(prev => ({ ...prev, email: "Please enter a valid email address (e.g., user@example.com)" }));
+    } else {
+      setErrors(prev => ({ ...prev, email: "" }));
+    }
+  };
+
+  // Updated confirmBooking function with validation
+  const confirmBooking = async (e) => {
+    e.preventDefault();
+    
+    // Validate all fields before submission
+    const newErrors = {};
+    
+    if (!name.trim()) {
+      newErrors.name = "First name is required";
+    } else if (!validateName(name)) {
+      newErrors.name = "First name should only contain letters (2-30 characters)";
+    }
+    
+    if (!lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    } else if (!validateName(lastName)) {
+      newErrors.lastName = "Last name should only contain letters (2-30 characters)";
+    }
+    
+    if (!phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!validatePhone(phone)) {
+      newErrors.phone = "Please enter a valid phone number (10-15 digits)";
+    }
+    
+    if (!designation.trim()) {
+      newErrors.designation = "Designation is required";
+    } else if (designation.length < 2) {
+      newErrors.designation = "Designation must be at least 2 characters";
+    }
+    
+    if (!email.trim()) {
+      newErrors.email = "Email address is required";
+    } else if (!validateEmail(email)) {
+      newErrors.email = "Please enter a valid email address (e.g., user@example.com)";
+    }
+    
+    // Update error states
+    setErrors(newErrors);
+    
+    // If there are errors, don't submit
+    if (Object.keys(newErrors).length > 0) {
+      // Show error message
       const errorMsg = document.querySelector(".error-message");
-      errorMsg.style.display = "flex";
+      if (errorMsg) {
+        errorMsg.style.display = "flex";
+        errorMsg.textContent = "Please fix the errors below!";
+      }
+      
+      // Scroll to first error
+      const firstErrorField = Object.keys(newErrors)[0];
+      const errorElement = document.querySelector(`input[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        errorElement.focus();
+      }
       return;
     }
 
+    setLoading(true);
+
     const bookingData = {
-  carType,
-  pickUp,
-  dropOff,
-  pickTime,
-  pickUpTime,   
-  dropOffTime,  
-  dropTime,
-  driver, 
-  name,
-  lastName,
-  phone,
-  designation,
-  email,
-};
+      carType,
+      pickUp,
+      dropOff,
+      pickTime,
+      pickUpTime,   
+      dropOffTime,  
+      dropTime,
+      driver, 
+      name: name.trim(),
+      lastName: lastName.trim(),
+      phone: phone.trim(),
+      designation: designation.trim(),
+      email: email.trim(),
+    };
 
-     try {
-  const response = await axios.post("http://localhost:8000/api/bookings", bookingData);
-  setBookingId(response.data.bookingId); 
-  setModal(false);
-  setSuccessMessage(true);
-  setTimeout(() => setSuccessMessage(false), 8000);
-} catch (error) {
-  console.error("Error saving booking:", error);
-} finally {
-  setLoading(false);
-}
-};
-
-  // Handle modal inputs
-  const handleName = (e) => setName(e.target.value);
-  const handleLastName = (e) => setLastName(e.target.value);
-  const handlePhone = (e) => setPhone(e.target.value);
-  const handledesignation = (e) => setdesignation(e.target.value);
-  const handleEmail = (e) => setEmail(e.target.value);
+    try {
+      const response = await axios.post("http://localhost:8000/api/bookings", bookingData);
+      setBookingId(response.data.bookingId); 
+      setModal(false);
+      setSuccessMessage(true);
+      
+      // Clear form data and errors
+      setName("");
+      setLastName("");
+      setPhone("");
+      setdesignation("");
+      setEmail("");
+      setErrors({});
+      
+      setTimeout(() => setSuccessMessage(false), 8000);
+    } catch (error) {
+      console.error("Error saving booking:", error);
+      alert("Booking failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle booking inputs
   const handleCar = (e) => {setCarType(e.target.value);setCarImg(e.target.value);};
@@ -84,12 +270,14 @@ function BookCar() {
   const handlePickTime = (e) => setPickTime(e.target.value);
   const handleDropTime = (e) => setDropTime(e.target.value);
   const handleDriver = (e) => setDriver(e.target.value);
+
   // Open modal when all inputs are fulfilled
   const openModal = (e) => {
     e.preventDefault();
     const errorMsg = document.querySelector(".error-message");
     if (!pickUp || !dropOff || !pickTime || !dropTime || !carType) {
       errorMsg.style.display = "flex";
+      errorMsg.textContent = "All fields required!";
     } else {
       setModal(!modal);
       const modalDiv = document.querySelector(".booking-modal");
@@ -108,7 +296,7 @@ function BookCar() {
     const doneMsg = document.querySelector(".booking-done");
     doneMsg.style.display = "none";
   };
-const [bookingId, setBookingId] = useState("");
+
   // Show car image based on selected car type
   let imgUrl;
   switch (carImg) {
@@ -135,9 +323,7 @@ const [bookingId, setBookingId] = useState("");
   }
 
   return (
-    
-     <>       
-
+    <>       
       <section id="booking-section" className="book-section">
         {/* Overlay */}
         <div
@@ -178,33 +364,51 @@ const [bookingId, setBookingId] = useState("");
                   </select>
                 </div>
 
+               {/* Pick-up Location with grouped cities */}
                 <div className="box-form__car-type">
                   <label>
-                    <i className="fa-solid fa-location-dot"></i> &nbsp; Pick-up{" "}
-                    <b>*</b>
+                    <i className="fa-solid fa-location-dot"></i> &nbsp; Pick-up <b>*</b>
                   </label>
                   <select value={pickUp} onChange={handlePick}>
-                    <option>Select pick up location</option>
-                    <option>Ella</option>
-                    <option>Colombo</option>
-                    <option>Galle</option>
-                    <option>Kandy</option>
-                    <option>Halpe</option>
+                    <option value="">Select pick up location</option>
+                    {cities.map((city, index) => (
+                      <option 
+                        key={index} 
+                        value={city.value} 
+                        disabled={city.disabled}
+                        style={{ 
+                          fontWeight: city.disabled ? 'bold' : 'normal',
+                          color: city.disabled ? '#666' : '#000',
+                          backgroundColor: city.disabled ? '#f5f5f5' : '#ffffff'
+                        }}
+                      >
+                        {city.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
+                {/* Drop-off Location with grouped cities */}
                 <div className="box-form__car-type">
                   <label>
-                    <i className="fa-solid fa-location-dot"></i> &nbsp; Drop-off{" "}
-                    <b>*</b>
+                    <i className="fa-solid fa-location-dot"></i> &nbsp; Drop-off <b>*</b>
                   </label>
                   <select value={dropOff} onChange={handleDrop}>
-                    <option>Select drop off location</option>
-                    <option>Ella</option>
-                    <option>Colombo</option>
-                    <option>Galle</option>
-                    <option>Kandy</option>
-                    <option>Halpe</option>
+                    <option value="">Select drop off location</option>
+                    {cities.map((city, index) => (
+                      <option 
+                        key={index} 
+                        value={city.value} 
+                        disabled={city.disabled}
+                        style={{ 
+                          fontWeight: city.disabled ? 'bold' : 'normal',
+                          color: city.disabled ? '#666' : '#000',
+                          backgroundColor: city.disabled ? '#f5f5f5' : '#ffffff'
+                        }}
+                      >
+                        {city.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -285,7 +489,6 @@ const [bookingId, setBookingId] = useState("");
       </section>
 
      {/* Success Message */}
-
 {successMessage && (
   <div className="success-popup-overlay">
     <div className="success-popup-card-row">
@@ -306,7 +509,7 @@ const [bookingId, setBookingId] = useState("");
       </div>
       
       <div className="success-popup-text-col">
-        <h2 className="success-popup-title">Booking Confirmed!</h2>
+        <h2 className="success-popup-title">🎉 Booking Confirmed!</h2>
         <div className="success-popup-text">
           {bookingId && (
             <>
@@ -396,7 +599,7 @@ const [bookingId, setBookingId] = useState("");
           </div>
         </div>
 
-        {/* Personal Info */}
+        {/* Personal Info with Validation */}
         <div className="booking-modal__person-info">
           <h4>Personal Information</h4>
           <form className="info-form">
@@ -406,12 +609,14 @@ const [bookingId, setBookingId] = useState("");
                   First Name <b>*</b>
                 </label>
                 <input
+                  name="name"
                   value={name}
                   onChange={handleName}
                   type="text"
                   placeholder="Enter your first name"
-                ></input>
-                <p className="error-modal">This field is required.</p>
+                  className={errors.name ? 'error-input' : ''}
+                />
+                {errors.name && <p className="error-modal active">{errors.name}</p>}
               </span>
 
               <span>
@@ -419,12 +624,14 @@ const [bookingId, setBookingId] = useState("");
                   Last Name <b>*</b>
                 </label>
                 <input
+                  name="lastName"
                   value={lastName}
                   onChange={handleLastName}
                   type="text"
                   placeholder="Enter your last name"
-                ></input>
-                <p className="error-modal ">This field is required.</p>
+                  className={errors.lastName ? 'error-input' : ''}
+                />
+                {errors.lastName && <p className="error-modal active">{errors.lastName}</p>}
               </span>
 
               <span>
@@ -432,12 +639,14 @@ const [bookingId, setBookingId] = useState("");
                   Phone Number <b>*</b>
                 </label>
                 <input
+                  name="phone"
                   value={phone}
                   onChange={handlePhone}
                   type="tel"
-                  placeholder="Enter your phone number"
-                ></input>
-                <p className="error-modal">This field is required.</p>
+                  placeholder="Enter your phone number (e.g., +94712345678)"
+                  className={errors.phone ? 'error-input' : ''}
+                />
+                {errors.phone && <p className="error-modal active">{errors.phone}</p>}
               </span>
 
               <span>
@@ -445,12 +654,14 @@ const [bookingId, setBookingId] = useState("");
                   Designation <b>*</b>
                 </label>
                 <input
-                 value={designation}
-                 onChange={handledesignation}
-                 type="text"
-                 placeholder="Enter your designation"
+                  name="designation"
+                  value={designation}
+                  onChange={handledesignation}
+                  type="text"
+                  placeholder="Enter your designation (e.g., Manager, Executive)"
+                  className={errors.designation ? 'error-input' : ''}
                 />
-                <p className="error-modal ">This field is required.</p>
+                {errors.designation && <p className="error-modal active">{errors.designation}</p>}
               </span>
             </div>
 
@@ -460,20 +671,29 @@ const [bookingId, setBookingId] = useState("");
                   Email <b>*</b>
                 </label>
                 <input
+                  name="email"
                   value={email}
                   onChange={handleEmail}
                   type="email"
-                  placeholder="Enter your email address"
-                ></input>
-                <p className="error-modal">This field is required.</p>
+                  placeholder="Enter your email address (e.g., john@example.com)"
+                  className={errors.email ? 'error-input' : ''}
+                />
+                {errors.email && <p className="error-modal active">{errors.email}</p>}
               </span>
             </div>
 
             <div className="reserve-button">
-              <button onClick={confirmBooking}>Reserve Now</button>
+              <button 
+                onClick={confirmBooking}
+                disabled={loading || Object.values(errors).some(error => error !== "")}
+                className={loading ? 'loading-btn' : ''}
+              >
+                {loading ? "Processing..." : "Reserve Now"}
+              </button>
             </div>
           </form>
         </div>
+
      {loading && (
   <div className="loading-popup">
     <div className="loading-popup__content">

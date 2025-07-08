@@ -119,7 +119,7 @@ const adminMailOptions = {
       <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border-left: 5px solid #17a2b8;">
         <h3 style="color: #0c5460; margin: 0 0 10px 0;">⚡ Action Required</h3>
         <p style="margin: 0; color: #0c5460;">
-          Please review this booking request and contact the customer to confirm availability and arrange payment.
+          Please review this booking request and contact the customer to confirm availability.
         </p>
       </div>
 
@@ -152,14 +152,20 @@ const adminMailOptions = {
 };
  // User confirmation email
      const userMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: booking.email, // Send to user's email
-      subject: "🚗 Your Car Booking Confirmation",
+  from: `"Vella Car Booking " <${process.env.EMAIL_USER}>`,
+  to: booking.email,
+      subject: "Your Car Booking Confirmation",
+      replyTo: process.env.EMAIL_USER,
+  headers: {
+    'X-Priority': '1',
+    'X-MSMail-Priority': 'Normal',
+    'List-Unsubscribe': `<mailto:${process.env.EMAIL_USER}?subject=Unsubscribe>`
+  },
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
             <img src="cid:carimage" alt="Car" width="150" />
-            <h1 style="color: #ff4d30; margin-top: 20px;">Booking Confirmed! 🎉</h1>
+            <h1 style="color: #ff4d30; margin-top: 20px;">Booking Confirmed! </h1>
           </div>
           
           <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
@@ -234,7 +240,11 @@ const adminMailOptions = {
       ]
     };
 
-      // Send both emails
+     console.log("=== EMAIL DEBUGGING ===");
+console.log("📧 Admin email going to:", process.env.EMAIL_USER);
+console.log("📧 User email going to:", booking.email);
+console.log("📧 User's actual email:", booking.email);
+console.log("========================");
     
 
     await transporter.sendMail(adminMailOptions);
