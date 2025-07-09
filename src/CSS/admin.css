@@ -3,22 +3,27 @@
 
 .title{
     font-weight: bold;
-    font-size: 50px;
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 50px;
+    margin-right: 200px;
+    
 }
 .dashboard {
-    padding: 20px;
+    padding: 50px;
     font-family: Arial, sans-serif;
-    margin-left: 210px;
+    margin-left: 270px;
+    height: 100vh;
+  }
+  .sublink{
+    text-align: center;
   }
   
   .dashboard-header {
     margin-bottom: 20px;
   }
   
-  .dashboard-header h1 {
-    font-size: 24px;
-    margin: 0;
-  }
+  
   
   .dashboard-header p {
     color: #888;
@@ -30,6 +35,8 @@
   gap: 32px;
   flex-wrap: wrap;
   justify-content: flex-start;
+  align-items: center;
+  text-align: center;
 }
 
 .dashboard-card1 {
@@ -105,8 +112,8 @@
   --background: white;
   --navbar-width: 200px;
   --navbar-width-min: 80px;
-  --navbar-dark-primary: linear-gradient(#063e4d, #043c57);;
-  --navbar-dark-secondary: #0f3d52;
+  --navbar-dark-primary: linear-gradient(#dd432ce8, #df3a20e8);;
+  --navbar-dark-secondary: #ff4c30e8;
   --navbar-light-primary: #f3f3f5;
   --navbar-light-secondary: #edeef0;
   }
@@ -209,7 +216,7 @@
   #nav-header {
     position: relative;
     width: var(--navbar-width);
-    left: 16px;
+   left: 2px;
     width: calc(var(--navbar-width) - 16px);
     min-height: 80px;
     background: var(--navbar-dark-primary);
@@ -220,6 +227,9 @@
     transition: width 0.2s;
     text-align: center;
     margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 20px;
+    font-size: 20px;
   }
   
   #nav-header hr {
@@ -228,8 +238,10 @@
   }
   
   #nav-title {
-    font-size: 1.5rem;
+    font-size: 3.5rem;
     transition: opacity 1s;
+    margin-left: 20px;
+  
   }
   
   label[for="nav-toggle"] {
@@ -328,15 +340,16 @@
   
   .nav-button {
     position: relative;
-    margin-left: 16px;
+    margin-left: 20px;
     height: 54px;
     display: flex;
     align-items: center;
-    color: var(--navbar-light-secondary);
+   color: #fcfcfc;
     direction: ltr;
     cursor: pointer;
     z-index: 1;
     transition: color 0.2s;
+    font-size: 15px;
   }
   
   .nav-button span {
@@ -429,3 +442,75 @@
     border-radius: 99px;
     background-color: #D62929;
   }
+
+
+
+  @media screen and (max-width: 1024px) {
+  .dashboard {
+    margin-left: 0;
+    padding: 30px 20px;
+  }
+
+  #nav-bar {
+    position: fixed;
+    width: 220px;
+    left: -240px;
+    top: 0;
+    height: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    z-index: 1000;
+    transition: left 0.3s ease-in-out;
+    
+  }
+  .nav-link{
+    font-size: 10px;
+  }
+
+  #nav-bar.active {
+    left: 0;
+  }
+
+  .nav-title{
+    font-size: 5px;
+  }
+
+  .hamburger {
+    display: block;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+    background: #ff4c30e8;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .dashboard-cards {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .dashboard-card1 {
+    width: 100%;
+  }
+
+  .title {
+    font-size: 30px;
+    margin-right: 0;
+  }
+
+  .navbar{
+    width: 200px;}
+}
+
+
+
+
+

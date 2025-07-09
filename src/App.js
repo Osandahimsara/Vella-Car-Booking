@@ -2,16 +2,19 @@ import Home from "./Pages/Home";
 import Navbar from "../src/components/Navbar";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Models from "./Pages/Models";
-import Team from "./Pages/Team";
+import Drivers from "./Pages/Drivers";
 import Login from "./Pages/Login";
 import AdminPage from "./Pages/Admin";
 import BookCar from "./Pages/BookCar";
+import DriverRegister from "./Pages/DriverRegister";
 
 
 function App() {
   const location = useLocation();
   // Hide Navbar on admin page
-  const hideNavbar = location.pathname === "/Adminpage";
+   const hideNavbar = location.pathname === "/Adminpage" || location.pathname === "/DriverRegister";
+  
+  
 
   return (
     <>
@@ -19,10 +22,11 @@ function App() {
       <Routes>
         <Route index path="/" element={<Home />} />
         <Route path="models" element={<Models />} />
-        <Route path="team" element={<Team />} />
+        <Route path="Drivers" element={<Drivers />} />
         <Route path="login" element={<Login />} />
         <Route path="Adminpage" element={<AdminPage />} />
         <Route path="bookcar" element={<BookCar />} />
+        <Route path="DriverRegister" element={<DriverRegister />} />
       </Routes>
     </>
   );

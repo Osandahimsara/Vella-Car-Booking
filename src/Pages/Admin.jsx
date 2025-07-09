@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../CSS/admin.css"
+import "../CSS/navbar.css"
 
 const AdminPage = () => {
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [totalDrivers, setTotalDrivers] = useState(0);
   const [pendingBookings, setPendingBookings] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Example: Fetch data from your backend API
   useEffect(() => {
@@ -42,19 +44,33 @@ const AdminPage = () => {
     },
   ];
 
+  
+
+
   return (
     <div style={{ display: "flex" }}>
       {/* Sidebar Navbar */}
-      <div id="nav-bar">
-        <div id="nav-header">
-          <span id="nav-title" style={{ color: "white", fontWeight: "bold", fontSize: "1.5rem" }}>
+     <div id="nav-bar" className={sidebarOpen ? "nav-bar active" : "nav-bar"} style={{ backgroundColor: '#ff4c30e8' }}>
+
+        <div id="nav-header" >
+
+<div
+  className="hamburger"
+  onClick={() => setSidebarOpen(!sidebarOpen)}
+>
+  <i className="fas fa-bars"></i>
+</div>
+
+
+
+          <span id="nav-title" style={{ color: "white", fontWeight: "bold", fontSize: "2.5rem" }}>
             Admin
           </span>
         </div>
-        <div id="nav-content">
+        <div id="nav-content" >
           <div className="nav-button">
             <i className="fas fa-user-plus"></i>
-            <Link to="/add-drivers" className="nav-link">Add Drivers</Link>
+            <Link to="/DriverRegister" className="nav-link">Add Drivers</Link>
           </div>
           <div className="nav-button">
             <i className="fas fa-car"></i>
@@ -96,9 +112,9 @@ const AdminPage = () => {
       <div className="dashboard" style={{ flex: 1 }}>
         <div className="dashboard-header">
           <h1 className="title">Dashboard</h1>
-          <p>
+          {/*<p className="sublink">
             <Link to="/">Home</Link> / <span>Dashboard</span>
-          </p>
+          </p>*/}
         </div>
         <div className="dashboard-cards">
           {cards.map((card, idx) => (

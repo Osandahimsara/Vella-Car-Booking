@@ -10,6 +10,7 @@
   margin: 0 auto;
 }
 
+
 @media (max-width: 1150px) {
   .models-div {
     grid-template-columns: 1fr 1fr;
