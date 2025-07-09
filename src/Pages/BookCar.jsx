@@ -11,8 +11,8 @@ import Footer from "../components/Footer";
 import citiesData from "../components/cities.json";
 
 function BookCar() {
-  const [modal, setModal] = useState(false); // Modal state
-  const [successMessage, setSuccessMessage] = useState(false); // Success message state
+  const [modal, setModal] = useState(false); 
+  const [successMessage, setSuccessMessage] = useState(false); 
   const [carType, setCarType] = useState("");
   const [pickUp, setPickUp] = useState("");
   const [dropOff, setDropOff] = useState("");
@@ -30,8 +30,10 @@ function BookCar() {
   const [loading, setLoading] = useState(false);
   const [cities, setCities] = useState([]);
   const [bookingId, setBookingId] = useState("");
+  const [availableDrivers, setAvailableDrivers] = useState([]);
+  const [driverLoading, setDriverLoading] = useState(false);
 
-  // Add validation error states
+  // validation error states
   const [errors, setErrors] = useState({
     name: "",
     lastName: "",
@@ -44,6 +46,88 @@ function BookCar() {
   useEffect(() => {
     loadCitiesFromJSON();
   }, []);
+
+  // UPDATED: Fetch drivers based on selected dates/times
+  useEffect(() => {
+    // Only fetch drivers when we have pick-up and drop-off details
+    if (pickTime && dropTime && pickUpTime && dropOffTime) {
+      fetchAvailableDrivers();
+    } else {
+      // If no dates selected, fetch all drivers
+      fetchAllDrivers();
+    }
+  }, [pickTime, dropTime, pickUpTime, dropOffTime]); // Add dependencies
+
+ // Update the fetchAvailableDrivers function with more debugging
+const fetchAvailableDrivers = async () => {
+  try {
+    setDriverLoading(true);
+    console.log('🔍 Fetching available drivers for:', { pickTime, dropTime, pickUpTime, dropOffTime });
+    
+    const params = new URLSearchParams({
+      pickUpDate: pickTime,
+      dropOffDate: dropTime,
+      pickUpTime: pickUpTime,
+      dropOffTime: dropOffTime
+    });
+    
+    const url = `http://localhost:8000/api/driver/available?${params}`;
+    console.log('📞 Making request to:', url);
+    
+    const response = await axios.get(url);
+    console.log('✅ Available drivers response:', response.data);
+    
+    setAvailableDrivers(response.data.availableDrivers || []);
+    
+    // Log detailed availability info
+    if (response.data.conflictingBookings > 0) {
+      console.log(`⚠️ Found ${response.data.conflictingBookings} conflicting bookings`);
+      console.log('🚫 Booked drivers:', response.data.bookedDrivers);
+    }
+    
+    console.log(`📊 Available: ${response.data.availableDrivers?.length || 0} / Total: ${response.data.totalDrivers}`);
+    
+    // Clear selected driver if they're no longer available
+    if (driver && response.data.bookedDrivers && response.data.bookedDrivers.includes(driver)) {
+      setDriver("");
+      alert(`Driver ${driver} is no longer available for the selected time. Please choose another driver.`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error fetching available drivers:', error);
+    console.error('Error details:', error.response?.data);
+    setAvailableDrivers([]);
+  } finally {
+    setDriverLoading(false);
+  }
+};
+
+  // UPDATED: Fetch all drivers (when no dates selected)
+  const fetchAllDrivers = async () => {
+    try {
+      setDriverLoading(true);
+      console.log('Fetching all drivers...');
+      const response = await axios.get('http://localhost:8000/api/driver');
+      console.log('All drivers response:', response.data);
+      
+      const activeDrivers = response.data.filter(driver => driver.status === 'active');
+      setAvailableDrivers(activeDrivers);
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+      setAvailableDrivers([]);
+    } finally {
+      setDriverLoading(false);
+    }
+  };
+
+  // NEW: Manual refresh function
+  const refreshDriverAvailability = () => {
+    if (pickTime && dropTime && pickUpTime && dropOffTime) {
+      fetchAvailableDrivers();
+    } else {
+      alert('Please select pickup and drop-off dates and times first');
+    }
+  };
 
   // Alternative approach - grouped by districts
   const loadCitiesFromJSON = () => {
@@ -163,7 +247,7 @@ function BookCar() {
     }
   };
 
-  // Updated confirmBooking function with validation
+  // UPDATED: confirmBooking function with driver conflict handling
   const confirmBooking = async (e) => {
     e.preventDefault();
     
@@ -257,7 +341,16 @@ function BookCar() {
       setTimeout(() => setSuccessMessage(false), 8000);
     } catch (error) {
       console.error("Error saving booking:", error);
-      alert("Booking failed. Please try again.");
+      
+      // Handle driver conflict (409 status)
+      if (error.response?.status === 409) {
+        alert(error.response.data.message);
+        // Refresh driver list
+        fetchAvailableDrivers();
+        setDriver(""); // Clear selected driver
+      } else {
+        alert("Booking failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -271,13 +364,13 @@ function BookCar() {
   const handleDropTime = (e) => setDropTime(e.target.value);
   const handleDriver = (e) => setDriver(e.target.value);
 
-  // Open modal when all inputs are fulfilled
+  // UPDATED: Open modal validation to include driver
   const openModal = (e) => {
     e.preventDefault();
     const errorMsg = document.querySelector(".error-message");
-    if (!pickUp || !dropOff || !pickTime || !dropTime || !carType) {
+    if (!pickUp || !dropOff || !pickTime || !dropTime || !carType || !driver) {
       errorMsg.style.display = "flex";
-      errorMsg.textContent = "All fields required!";
+      errorMsg.textContent = "All fields including driver selection are required!";
     } else {
       setModal(!modal);
       const modalDiv = document.querySelector(".booking-modal");
@@ -412,20 +505,6 @@ function BookCar() {
                   </select>
                 </div>
 
-                <div className="box-form__car-type">
-                <label>
-                <i className="fa-solid fa-location-dot"></i> &nbsp; Select Driver <b>*</b>
-                </label>
-               <select value={driver} onChange={handleDriver}>
-                  <option>Select Driver</option>
-                  <option>Michael Diaz</option>
-                  <option>Briana Ross</option>
-                  <option>Lauren Rivera</option>
-                  <option>Martin Rizz</option>
-                  <option>Caitlyn Hunt</option>
-               </select>
-                </div>
-
                 <div className="box-form__car-time">
                   <label htmlFor="picktime">
                     <i className="fa-regular fa-calendar-days "></i> &nbsp;
@@ -438,20 +517,22 @@ function BookCar() {
                     type="date"
                   ></input>
                 </div>
-              {/* Pick-Up Time */}
-<div className="box-form__car-time">
-  <label htmlFor="pickUpTime">
-    <i className="fa-regular fa-clock"></i> &nbsp;
-    Pick-Up Time <b>*</b>
-  </label>
-  <input
-    type="time"
-    id="pickUpTime"
-    value={pickUpTime}
-    onChange={(e) => setPickUpTime(e.target.value)}
-    required
-  />
-</div>
+
+                {/* Pick-Up Time */}
+                <div className="box-form__car-time">
+                  <label htmlFor="pickUpTime">
+                    <i className="fa-regular fa-clock"></i> &nbsp;
+                    Pick-Up Time <b>*</b>
+                  </label>
+                  <input
+                    type="time"
+                    id="pickUpTime"
+                    value={pickUpTime}
+                    onChange={(e) => setPickUpTime(e.target.value)}
+                    required
+                  />
+                </div>
+
                 <div className="box-form__car-time">
                   <label htmlFor="droptime">
                     <i className="fa-regular fa-calendar-days "></i> &nbsp;
@@ -464,20 +545,70 @@ function BookCar() {
                     type="date"
                   ></input>
                 </div>
+
                 {/* Drop-Off Time */}
-<div className="box-form__car-time">
-  <label htmlFor="dropOffTime">
-    <i className="fa-regular fa-clock"></i> &nbsp;
-    Drop-Off Time <b>*</b>
-  </label>
-  <input
-    type="time"
-    id="dropOffTime"
-    value={dropOffTime}
-    onChange={(e) => setDropOffTime(e.target.value)}
-    required
-  />
-</div>
+                <div className="box-form__car-time">
+                  <label htmlFor="dropOffTime">
+                    <i className="fa-regular fa-clock"></i> &nbsp;
+                    Drop-Off Time <b>*</b>
+                  </label>
+                  <input
+                    type="time"
+                    id="dropOffTime"
+                    value={dropOffTime}
+                    onChange={(e) => setDropOffTime(e.target.value)}
+                    required
+                  />
+                </div>
+
+                               {/* UPDATED: Driver Selection - No manual refresh button */}
+                <div className="box-form__car-type">
+                  <label>
+                    <i className="fa-solid fa-user"></i> &nbsp; Select Driver <b>*</b>
+                  </label>
+                  <select value={driver} onChange={handleDriver} disabled={driverLoading}>
+                    <option value="">
+                      {driverLoading ? "Loading drivers..." :
+                       !pickTime || !dropTime ? "Please select dates first" : 
+                       availableDrivers.length === 0 ? "No drivers available for selected time" : 
+                       "Select Available Driver"
+                      }
+                    </option>
+                    {availableDrivers.length > 0 ? (
+                      availableDrivers.map((driverData) => (
+                        <option 
+                          key={driverData._id} 
+                          value={`${driverData.firstName} ${driverData.lastName}`}
+                        >
+                          {driverData.firstName} {driverData.lastName} - {driverData.companyName}
+                          {driverData.status === 'active' ? ' ✅' : ' ⚠️'}
+                        </option>
+                      ))
+                    ) : (
+                      !driverLoading && (
+                        <option disabled>
+                          {!pickTime || !dropTime ? 
+                            "Select pick-up and drop-off dates to see available drivers" :
+                            "All drivers are busy during this time period"
+                          }
+                        </option>
+                      )
+                    )}
+                  </select>
+                  
+                  {/* Show availability info */}
+                  {pickTime && dropTime && (
+                    <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+                      {driverLoading ? '🔄 Checking availability...' :
+                       availableDrivers.length > 0 ? 
+                        `✅ ${availableDrivers.length} driver(s) available for ${pickTime} to ${dropTime}` :
+                        `❌ No drivers available for selected time period`
+                      }
+                    </small>
+                  )}
+                </div>
+
+                {/* Updated Search button */}
                 <button onClick={openModal} type="submit">
                   Search
                 </button>
@@ -488,54 +619,55 @@ function BookCar() {
         <Footer />
       </section>
 
-     {/* Success Message */}
-{successMessage && (
-  <div className="success-popup-overlay">
-    <div className="success-popup-card-row">
-      <button 
-        className="success-popup-close-btn"
-        onClick={() => setSuccessMessage(false)}
-      >
-        ✕
-      </button>
-      
-      <div className="success-popup-icon-col">
-        <div className="success-popup-check">
-          <svg width="100" height="100" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" fill="#4ade80" stroke="#22c55e" strokeWidth="2"/>
-            <polyline points="30,52 45,67 70,35" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+      {/* Rest of your existing JSX remains the same... */}
+      {/* Success Message */}
+      {successMessage && (
+        <div className="success-popup-overlay">
+          <div className="success-popup-card-row">
+            <button 
+              className="success-popup-close-btn"
+              onClick={() => setSuccessMessage(false)}
+            >
+              ✕
+            </button>
+            
+            <div className="success-popup-icon-col">
+              <div className="success-popup-check">
+                <svg width="100" height="100" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="#4ade80" stroke="#22c55e" strokeWidth="2"/>
+                  <polyline points="30,52 45,67 70,35" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            
+            <div className="success-popup-text-col">
+              <h2 className="success-popup-title">🎉 Booking Confirmed!</h2>
+              <div className="success-popup-text">
+                {bookingId && (
+                  <>
+                    <strong>Your Booking ID:</strong><br />
+                    <span className="booking-id-highlight">{bookingId}</span><br /><br />
+                  </>
+                )}
+                ✅ <strong>Confirmation email sent!</strong><br />
+                Check your email for booking details<br />
+                We'll see you soon!
+              </div>
+            </div>
+            
+            <div className="success-popup-footer">
+              <button 
+                className="success-popup-action-btn"
+                onClick={() => setSuccessMessage(false)}
+              >
+                Awesome!
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div className="success-popup-text-col">
-        <h2 className="success-popup-title">🎉 Booking Confirmed!</h2>
-        <div className="success-popup-text">
-          {bookingId && (
-            <>
-              <strong>Your Booking ID:</strong><br />
-              <span className="booking-id-highlight">{bookingId}</span><br /><br />
-            </>
-          )}
-          ✅ <strong>Confirmation email sent!</strong><br />
-          Check your email for booking details<br />
-          We'll see you soon!
-        </div>
-      </div>
-      
-      <div className="success-popup-footer">
-        <button 
-          className="success-popup-action-btn"
-          onClick={() => setSuccessMessage(false)}
-        >
-          Awesome!
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
-      {/* Modal */}
+      {/* Modal - Add driver info to the modal */}
       <div className={`booking-modal ${modal ? "active-modal" : ""}`}>
         {/* Title */}
         <div className="booking-modal__title">
@@ -587,6 +719,17 @@ function BookCar() {
                 <div>
                   <h6>Drop-Off Location</h6>
                   <p>{dropOff}</p>
+                </div>
+              </span>
+            </div>
+
+            {/* Add driver info to modal */}
+            <div className="booking-modal__car-info__dates">
+              <span>
+                <i className="fa-solid fa-user"></i>
+                <div>
+                  <h6>Selected Driver</h6>
+                  <p>{driver || "No driver selected"}</p>
                 </div>
               </span>
             </div>
@@ -694,19 +837,19 @@ function BookCar() {
           </form>
         </div>
 
-     {loading && (
-  <div className="loading-popup">
-    <div className="loading-popup__content">
-      <p className="loading-message">Your reservation is processing</p>
-      <div className="loading-ellipsis">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-    </div>
-  </div>
-)}
+        {loading && (
+          <div className="loading-popup">
+            <div className="loading-popup__content">
+              <p className="loading-message">Your reservation is processing</p>
+              <div className="loading-ellipsis">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </>

@@ -47,6 +47,178 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// =================== EXISTING DEBUG ROUTES ===================
+// DEBUG ROUTE - Add this temporarily to check driver data
+router.get("/debug", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    const drivers = await db.collection("drivers").find({}).toArray();
+    
+    console.log("=== ALL DRIVERS DEBUG ===");
+    drivers.forEach((driver, index) => {
+      console.log(`Driver ${index + 1}:`, {
+        name: `${driver.firstName} ${driver.lastName}`,
+        status: driver.status,
+        hasStatus: driver.hasOwnProperty('status')
+      });
+    });
+    console.log("========================");
+    
+    res.json({
+      totalDrivers: drivers.length,
+      driversWithStatus: drivers.filter(d => d.status === 'active').length,
+      allDrivers: drivers.map(d => ({
+        name: `${d.firstName} ${d.lastName}`,
+        status: d.status || 'NO STATUS',
+        hasStatusField: d.hasOwnProperty('status')
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// FIX EXISTING DRIVERS ROUTE - Add this to update drivers without status
+router.patch("/fix-status", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    // Update all drivers without status to be active
+    const result = await db.collection("drivers").updateMany(
+      { status: { $exists: false } }, // Find drivers without status field
+      { $set: { status: "active" } }   // Set them as active
+    );
+    
+    console.log(`Updated ${result.modifiedCount} drivers to active status`);
+    
+    res.json({ 
+      message: `Updated ${result.modifiedCount} drivers to active status`,
+      modifiedCount: result.modifiedCount 
+    });
+  } catch (error) {
+    console.error("Error updating driver status:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// =================== ADD THESE NEW ROUTES HERE ===================
+// GET /api/driver/available - Get only available drivers for a specific time slot
+router.get("/available", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const { pickUpDate, dropOffDate, pickUpTime, dropOffTime } = req.query;
+    
+    if (!pickUpDate || !dropOffDate) {
+      return res.status(400).json({ message: "Pick-up and drop-off dates are required" });
+    }
+    
+    // Create date-time objects for comparison
+    const bookingStart = new Date(`${pickUpDate}T${pickUpTime || '00:00'}`);
+    const bookingEnd = new Date(`${dropOffDate}T${dropOffTime || '23:59'}`);
+    
+    console.log("Checking availability for:", { bookingStart, bookingEnd });
+    
+    // Get all drivers
+    const allDrivers = await db.collection("drivers").find({ status: "active" }).toArray();
+    
+    // Get all bookings that might conflict with the requested time
+    const conflictingBookings = await db.collection("bookings").find({
+      $or: [
+        {
+          // Booking starts during our requested period
+          pickTime: { $gte: bookingStart, $lt: bookingEnd }
+        },
+        {
+          // Booking ends during our requested period
+          dropTime: { $gt: bookingStart, $lte: bookingEnd }
+        },
+        {
+          // Booking completely encompasses our requested period
+          pickTime: { $lte: bookingStart },
+          dropTime: { $gte: bookingEnd }
+        }
+      ]
+    }).toArray();
+    
+    console.log("Conflicting bookings found:", conflictingBookings.length);
+    
+    // Get list of driver names that are already booked
+    const bookedDriverNames = conflictingBookings.map(booking => booking.driver);
+    
+    console.log("Booked drivers:", bookedDriverNames);
+    
+    // Filter out booked drivers
+    const availableDrivers = allDrivers.filter(driver => {
+      const driverFullName = `${driver.firstName} ${driver.lastName}`;
+      return !bookedDriverNames.includes(driverFullName);
+    });
+    
+    console.log("Available drivers:", availableDrivers.length);
+    
+    // Add image URLs
+    const driversWithImageUrls = availableDrivers.map(driver => ({
+      ...driver,
+      driverImageUrl: driver.driverImage ? `/uploads/drivers/${driver.driverImage}` : null
+    }));
+    
+    res.status(200).json({
+      availableDrivers: driversWithImageUrls,
+      totalDrivers: allDrivers.length,
+      bookedDrivers: bookedDriverNames,
+      requestedPeriod: { bookingStart, bookingEnd }
+    });
+    
+  } catch (error) {
+    console.error("Error checking driver availability:", error);
+    res.status(500).json({ message: "Error checking driver availability" });
+  } finally {
+    await client.close();
+  }
+});
+
+// Update driver status route
+router.patch("/:id/status", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const { status } = req.body; // 'active', 'inactive', 'busy'
+    
+    if (!['active', 'inactive', 'busy'].includes(status)) {
+      return res.status(400).json({ message: "Status must be 'active', 'inactive', or 'busy'" });
+    }
+    
+    const result = await db.collection("drivers").updateOne(
+      { _id: new require("mongodb").ObjectId(req.params.id) },
+      { $set: { status: status, lastUpdated: new Date() } }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+    
+    res.json({ message: `Driver status updated to ${status}` });
+  } catch (error) {
+    console.error("Error updating driver status:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+// ================================================================
+
 // POST /api/driver - Create a new driver with image
 router.post("/", upload.single('driverImage'), async (req, res) => {
   console.log("=== DRIVER REGISTRATION DEBUG ===");

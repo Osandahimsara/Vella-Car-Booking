@@ -126,10 +126,11 @@
 }
 
 .book-content__box button {
-  padding: 1.3rem 1.3rem;
+  padding: 1.5rem 3rem; /* More horizontal padding */
   height: fit-content;
-  align-self: self-end;
+  align-self: center;
   border: none;
+  border-radius: 8px; /* Add rounded corners */
   font-family: "Rubik", sans-serif;
   font-size: 1.8rem;
   font-weight: 500;
@@ -138,10 +139,16 @@
   box-shadow: 0 10px 15px rgb(255 83 48 / 35%);
   cursor: pointer;
   transition: all 0.3s;
+  margin: 2rem auto; /* Center with auto margins */
+  min-width: 200px; /* Minimum width */
+  max-width: 300px; /* Maximum width */
+  margin: 4rem auto 2rem auto; 
 }
 
 .book-content__box button:hover {
-  box-shadow: 0 10px 15px rgb(255 83 48 / 55%);
+  background-color: #e63946;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px rgb(255 83 48 / 45%);
 }
 
 .error-message {
