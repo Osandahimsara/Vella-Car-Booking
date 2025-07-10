@@ -19,7 +19,7 @@ function Navbar() {
           </div>
           <ul className="mobile-navbar__links">
             <li><Link onClick={openNav} to="/">Home</Link></li>
-            <li><Link onClick={openNav} to="/Models">Vehicle Models</Link></li>
+            <li><Link onClick={openNav} to="/Vehicles">Vehicle Models</Link></li>
             <li><Link onClick={openNav} to="/drivers">Our Drivers</Link></li> 
             <li><Link onClick={openNav} to="/login">Login</Link></li> 
           </ul>
@@ -34,7 +34,7 @@ function Navbar() {
           </div>
           <ul className="navbar__links">
             <li><Link className="home-link" to="/">Home</Link></li>
-            <li><Link className="models-link" to="/Models">Vehicle Models</Link></li>
+            <li><Link className="models-link" to="/Vehicles">Vehicle Models</Link></li>
             <li><Link className="drivers-link" to="/drivers">Our Drivers</Link></li>
             <li><Link className="login-link" to="/login">Login</Link></li> 
           </ul>

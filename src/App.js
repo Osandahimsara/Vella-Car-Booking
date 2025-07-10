@@ -10,6 +10,7 @@ import VehicleRegister from "./Pages/VehicleRegister";
 import Vehicles from "./Pages/Vehicles";
 
 
+
 function App() {
   const location = useLocation();
   // Hide Navbar on admin page
@@ -30,6 +31,7 @@ function App() {
         <Route path="DriverRegister" element={<DriverRegister />} />
         <Route path="VehicleRegister" element={<VehicleRegister />} /> 
         <Route path="vehicles" element={<Vehicles />} /> 
+       
       </Routes>
     </>
   );

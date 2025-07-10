@@ -267,7 +267,7 @@ const VehicleRegister = () => {
                   </div>
                 ) : (
                   <div className="upload-placeholder">
-                    <div className="upload-icon">🚗</div>
+                    <div className="upload-icon">+</div>
                     <p>Click to upload vehicle photo</p>
                     <small>JPEG, PNG, GIF (Max 5MB)</small>
                   </div>

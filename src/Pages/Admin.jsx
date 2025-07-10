@@ -1,135 +1,875 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import "../CSS/admin.css"
-import "../CSS/navbar.css"
+import axios from "axios";
+import "../CSS/admin.css";
+import totalVehiclesImg from "../images/admin/TotalVehicles.png";
+import totalDriversImg from "../images/admin/TotalDrivers.png";
+import pendingBookingsImg from "../images/admin/PendingBookings.webp";
+import totalBookingsImg from "../images/admin/TotalBookings .webp";
+import completedImg from "../images/admin/Completed.png";
+import cancelledImg from "../images/admin/Cancelled.png";
+import fleetActiveImg from "../images/admin/FleetActive.jpg";
+import addDriverImg from "../images/admin/AddDriver.png";
+import addVehicleImg from "../images/admin/AddVehicle.webp";
+import newBookingImg from "../images/admin/NewBooking.png";
+import viewReportsImg from "../images/admin/ViewReports.png";
 
 const AdminPage = () => {
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [totalDrivers, setTotalDrivers] = useState(0);
   const [pendingBookings, setPendingBookings] = useState(0);
+  const [totalBookings, setTotalBookings] = useState(0);
+  const [activeVehicles, setActiveVehicles] = useState(0);
+  const [activeDrivers, setActiveDrivers] = useState(0);
+  const [completedBookings, setCompletedBookings] = useState(0);
+  const [revenue, setRevenue] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [recentBookings, setRecentBookings] = useState([]);
 
-  // Example: Fetch data from your backend API
+  // Fetch real data from your backend API
   useEffect(() => {
-    // Replace with your actual API endpoints
-    // Example:
-    // axios.get("/api/vehicles").then(res => setTotalVehicles(res.data.length));
-    // axios.get("/api/drivers").then(res => setTotalDrivers(res.data.length));
-    // axios.get("/api/bookings?status=pending").then(res => setPendingBookings(res.data.length));
-
-    // Demo values:
-    setTotalVehicles(12);
-    setTotalDrivers(8);
-    setPendingBookings(3);
+    fetchDashboardData();
   }, []);
 
-  const cards = [
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all data in parallel
+      const [vehiclesRes, driversRes, bookingsRes] = await Promise.all([
+        axios.get('http://localhost:8000/api/vehicles'),
+        axios.get('http://localhost:8000/api/driver'),
+        axios.get('http://localhost:8000/api/booking')
+      ]);
+
+      const vehicles = vehiclesRes.data;
+      const drivers = driversRes.data;
+      const bookings = bookingsRes.data;
+
+      // Calculate statistics
+      setTotalVehicles(vehicles.length);
+      setTotalDrivers(drivers.length);
+      setTotalBookings(bookings.length);
+      
+      setActiveVehicles(vehicles.filter(v => v.status === 'active').length);
+      setActiveDrivers(drivers.filter(d => d.status === 'active').length);
+      setPendingBookings(bookings.filter(b => b.status === 'pending').length);
+      setCompletedBookings(bookings.filter(b => b.status === 'completed').length);
+      
+      // Calculate revenue from completed bookings
+      const totalRevenue = bookings
+        .filter(b => b.status === 'completed')
+        .reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
+      setRevenue(totalRevenue);
+
+      // Get recent bookings (last 5)
+      const recent = bookings
+        .sort((a, b) => new Date(b.createdAt || b.pickTime) - new Date(a.createdAt || a.pickTime))
+        .slice(0, 5);
+      setRecentBookings(recent);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      // Fallback to demo values if API fails
+      setTotalVehicles(12);
+      setTotalDrivers(8);
+      setPendingBookings(3);
+      setTotalBookings(25);
+      setActiveVehicles(10);
+      setActiveDrivers(6);
+      setCompletedBookings(18);
+      setRevenue(15420);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+const cards = [
     {
       count: totalVehicles,
       label: "Total Vehicles",
-      color: "blue",
-      icon: <i className="fas fa-car si"></i>,
+      sublabel: `${activeVehicles} Active`,
+      color: "#007bff",
+      icon: <i className="fas fa-car"></i>,
+      image: totalVehiclesImg, 
+      trend: "+2 this week",
+      link: "/AdminVehicleManagement"
     },
     {
       count: totalDrivers,
-      label: "Total Drivers",
-      color: "green",
-      icon: <i className="fas fa-user-tie si"></i>,
+      label: "Total Drivers", 
+      sublabel: `${activeDrivers} Active`,
+      color: "#28a745",
+      icon: <i className="fas fa-user-tie"></i>,
+      image: totalDriversImg, 
+      trend: "+1 this week",
+      link: "/AdminDriverManagement"
     },
     {
       count: pendingBookings,
       label: "Pending Bookings",
-      color: "red",
-      icon: <i className="fas fa-clock si"></i>,
+      sublabel: "Need attention",
+      color: "#ffc107",
+      icon: <i className="fas fa-clock"></i>,
+      image: pendingBookingsImg, 
+      trend: pendingBookings > 5 ? "High volume" : "Normal"
     },
+    {
+      count: totalBookings,
+      label: "Total Bookings",
+      sublabel: `${completedBookings} Completed`,
+      color: "#17a2b8",
+      icon: <i className="fas fa-calendar-check"></i>,
+      image: totalBookingsImg, 
+      trend: "+5 this week"
+    }
   ];
 
-  
 
+  const secondaryCards = [
+    {
+      count: completedBookings,
+      label: "Completed",
+      color: "#28a745",
+      icon: <i className="fas fa-check-circle"></i>,
+      image: completedImg
+    },
+    
+    {
+      count: totalBookings - completedBookings - pendingBookings,
+      label: "Cancelled",
+      color: "#dc3545",
+      icon: <i className="fas fa-times-circle"></i>,
+      image: cancelledImg
+    },
+    {
+      count: `${Math.round((activeVehicles/totalVehicles)*100)}%`,
+      label: "Fleet Active",
+      color: "#007bff",
+      icon: <i className="fas fa-chart-line"></i>,
+      image: fleetActiveImg
+    }
+  ];
 
   return (
-    <div style={{ display: "flex" }}>
-      {/* Sidebar Navbar */}
-     <div id="nav-bar" className={sidebarOpen ? "nav-bar active" : "nav-bar"} style={{ backgroundColor: '#ff4c30e8' }}>
-
-        <div id="nav-header" >
-
-<div
-  className="hamburger"
-  onClick={() => setSidebarOpen(!sidebarOpen)}
->
-  <i className="fas fa-bars"></i>
-</div>
-
-
-
-          <span id="nav-title" style={{ color: "white", fontWeight: "bold", fontSize: "2.5rem" }}>
-            Admin
-          </span>
-        </div>
-        <div id="nav-content" >
-          <div className="nav-button">
-            <i className="fas fa-user-plus"></i>
-            <Link to="/DriverRegister" className="nav-link">Add Drivers</Link>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f8f9fa" }}>
+      {/* Enhanced Sidebar */}
+      <div id="nav-bar" className={sidebarOpen ? "nav-bar active" : "nav-bar"} 
+           style={{ 
+             backgroundColor: '#2c3e50',
+             boxShadow: '2px 0 10px rgba(0,0,0,0.1)',
+             transition: 'all 0.3s ease'
+           }}>
+        
+        <div id="nav-header" style={{ padding: '20px', borderBottom: '1px solid #34495e' }}>
+          <div className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}
+               style={{ 
+                 background: '#e74c3c',
+                 padding: '12px 15px',
+                 borderRadius: '8px',
+                 cursor: 'pointer',
+                 marginBottom: '15px',
+                 transition: 'all 0.3s ease'
+               }}>
+            <i className="fas fa-bars" style={{ color: 'white' }}></i>
           </div>
-           <div className="nav-button">
-            <i className="fas fa-car"></i>
-            <Link to="/VehicleRegister" className="nav-link">Add Vehicle</Link> {/* UPDATED */}
-          </div>
-          <div className="nav-button">
-            <i className="fas fa-car-side"></i>
-            <Link to="/vehicles" className="nav-link">Registered Vehicles</Link> {/* UPDATED */}
-          </div>
-          <div className="nav-button">
-            <i className="fas fa-id-badge"></i>
-            <Link to="/Drivers" className="nav-link">Registered Drivers</Link>
-          </div>
-          <div className="nav-button">
-            <i className="fas fa-list"></i>
-            <Link to="/pending-bookings" className="nav-link">Pending Booking List</Link>
-          </div>
-          <div className="nav-button">
-            <i className="fas fa-file-alt"></i>
-            <Link to="/reports" className="nav-link">Reports</Link>
-          </div>
-        </div>
-        <div id="nav-footer">
-          <div id="nav-footer-heading">
-            <div id="nav-footer-avatar">
-              <img
-                src="https://gravatar.com/avatar/4474ca42d303761c2901fa819c4f2547"
-                alt="Avatar"
-              />
+          
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              width: '60px', 
+              height: '60px', 
+              background: '#e74c3c', 
+              borderRadius: '50%',
+              margin: '0 auto 10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="fas fa-user-shield" style={{ color: 'white', fontSize: '24px' }}></i>
             </div>
-            <div id="nav-footer-titlebox">
-              <h5 style={{ fontSize: "16px", color: "white" }}>admin</h5>
+            <span style={{ color: "white", fontWeight: "bold", fontSize: "1.5rem", display: 'block' }}>
+              Admin Panel
+            </span>
+            <small style={{ color: '#bdc3c7', fontSize: '12px' }}>Car Booking System</small>
+          </div>
+        </div>
+
+        <div id="nav-content" style={{ padding: '20px 0' }}>
+          {[
+            { icon: "fas fa-tachometer-alt", label: "Dashboard", path: "/Adminpage", active: true },
+            { icon: "fas fa-user-plus", label: "Add Drivers", path: "/DriverRegister" },
+            { icon: "fas fa-car", label: "Add Vehicle", path: "/VehicleRegister" },
+            { icon: "fas fa-car-side", label: "Manage Vehicles", path: "/vehicles" },
+            { icon: "fas fa-id-badge", label: "Manage Drivers", path: "/Drivers" },
+            { icon: "fas fa-list", label: "Bookings", path: "/pending-bookings" },
+            { icon: "fas fa-chart-bar", label: "Reports", path: "/reports" }
+          ].map((item, idx) => (
+            <div key={idx} className="nav-button" style={{
+              margin: '5px 15px',
+              borderRadius: '8px',
+              backgroundColor: item.active ? '#e74c3c' : 'transparent',
+              transition: 'all 0.3s ease'
+            }}>
+              <i className={item.icon} style={{ 
+                marginRight: '12px', 
+                width: '20px',
+                color: '#ecf0f1'
+              }}></i>
+              <Link to={item.path} className="nav-link" style={{
+                color: '#ecf0f1',
+                textDecoration: 'none',
+                fontSize: '14px',
+                fontWeight: item.active ? 'bold' : 'normal'
+              }}>
+                {item.label}
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        <div id="nav-footer" style={{ 
+          position: 'absolute', 
+          bottom: '20px', 
+          left: '20px', 
+          right: '20px',
+          borderTop: '1px solid #34495e',
+          paddingTop: '15px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img
+              src="https://gravatar.com/avatar/4474ca42d303761c2901fa819c4f2547"
+              alt="Avatar"
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                marginRight: '10px'
+              }}
+            />
+            <div>
+              <h5 style={{ fontSize: "14px", color: "white", margin: 0 }}>Administrator</h5>
+              <small style={{ color: '#bdc3c7', fontSize: '12px' }}>Online</small>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Dashboard */}
-      <div className="dashboard" style={{ flex: 1 }}>
-        <div className="dashboard-header">
-          <h1 className="title">Dashboard</h1>
-          {/*<p className="sublink">
-            <Link to="/">Home</Link> / <span>Dashboard</span>
-          </p>*/}
-        </div>
-        <div className="dashboard-cards">
-          {cards.map((card, idx) => (
-            <div
-              key={idx}
-              className="dashboard-card1"
-              style={{ backgroundColor: card.color }}
-            >
-              <div className="card-content1">
-                <h2>{card.count}</h2>
-                <p className="clabel">{card.label}</p>
+      {/* Enhanced Dashboard */}
+      <div className="dashboard" style={{ 
+        flex: 1, 
+        padding: '30px',
+        marginLeft: sidebarOpen ? '0' : '0',
+        transition: 'margin-left 0.3s ease'
+      }}>
+        
+        {/* Enhanced Dashboard Header */}
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '20px',
+          padding: '40px 35px',
+          marginBottom: '35px',
+          boxShadow: '0 15px 35px rgba(102, 126, 234, 0.3)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Background Pattern */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            opacity: 0.4
+          }}></div>
+          
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 1,
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              {/* Welcome Section */}
+              <div style={{ marginBottom: '15px' }}>
+                <span style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  padding: '6px 15px',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  {new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </span>
               </div>
-              <div className="card-icon">{card.icon}</div>
+
+              {/* Main Title */}
+              <h1 style={{ 
+                fontSize: '3rem', 
+                color: 'white', 
+                margin: '0 0 10px 0',
+                fontWeight: '800',
+                textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                lineHeight: '1.1'
+              }}>
+                <span style={{ 
+                  background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  
+                </span>{' '}
+                Admin Dashboard
+              </h1>
+
+              {/* Subtitle */}
+              <p style={{ 
+                color: 'rgba(255, 255, 255, 0.9)', 
+                fontSize: '1.2rem', 
+                margin: '0 0 15px 0',
+                fontWeight: '400',
+                lineHeight: '1.4'
+              }}>
+                Welcome back, Administrator! 👋<br/>
+                <span style={{ fontSize: '1rem', opacity: 0.8 }}>
+                  Here's your car booking business overview
+                </span>
+              </p>
+
+             
+              
+            </div>
+
+            {/* Right Side Actions */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '15px',
+              alignItems: 'flex-end'
+            }}>
+              {/* Time Display */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                padding: '10px 20px',
+                borderRadius: '15px',
+                textAlign: 'center',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                minWidth: '150px'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '2px' }}>
+                  {new Date().toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                  })}
+                </div>
+                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                  {new Date().toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ')[1]}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Elements */}
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            width: '100px',
+            height: '100px',
+            background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+            borderRadius: '50%',
+            opacity: 0.3
+          }}></div>
+          
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '20px',
+            width: '60px',
+            height: '60px',
+            background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1))',
+            borderRadius: '50%',
+            opacity: 0.4
+          }}></div>
+        </div>
+
+        {/* Enhanced Main Stats Cards with Images */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '25px',
+          marginBottom: '30px'
+        }}>
+          {cards.map((card, idx) => (
+            <Link 
+              key={idx}
+              to={card.link || '#'}
+              style={{
+                textDecoration: 'none',
+                color: 'inherit'
+              }}
+            >
+              <div style={{
+                background: 'white',
+                borderRadius: '20px',
+                padding: '25px',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                border: `3px solid ${card.color}20`,
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+                cursor: card.link ? 'pointer' : 'default',
+                height: '200px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.15)';
+                e.currentTarget.style.borderColor = card.color;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+                e.currentTarget.style.borderColor = `${card.color}20`;
+              }}>
+                
+                {/* Top stripe */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '5px',
+                  background: `linear-gradient(90deg, ${card.color}, ${card.color}aa)`
+                }}></div>
+
+                {/* Card Image */}
+                <div style={{
+                  position: 'absolute',
+                  top: '15px',
+                  right: '15px',
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${card.color}15, ${card.color}05)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: `2px solid ${card.color}20`,
+                  overflow: 'hidden'
+                }}>
+                  <img 
+                    src={card.image} 
+                    alt={card.label}
+                    style={{
+                      width: '55px',
+                      height: '55px',
+                      objectFit: 'contain',
+                      filter: `drop-shadow(0 2px 8px ${card.color}40)`,
+                      transition: 'transform 0.3s ease'
+                    }}
+                    onError={(e) => {
+                      // Fallback to icon if image fails to load
+                      e.target.style.display = 'none';
+                      if (e.target.nextSibling) {
+                        e.target.nextSibling.style.display = 'flex';
+                      }
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'scale(1.1) rotate(5deg)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'scale(1) rotate(0deg)';
+                    }}
+                  />
+                  {/* Fallback icon (hidden by default) */}
+                  <div style={{
+                    display: 'none',
+                    fontSize: '30px',
+                    color: card.color,
+                    position: 'absolute'
+                  }}>
+                    {card.icon}
+                  </div>
+                </div>
+
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  height: '100%',
+                  justifyContent: 'space-between'
+                }}>
+                  {/* Main Content */}
+                  <div>
+                    <h2 style={{ 
+                      fontSize: '2.8rem', 
+                      fontWeight: '800', 
+                      color: '#2c3e50',
+                      margin: '0 0 8px 0',
+                      lineHeight: 1,
+                      background: `linear-gradient(135deg, ${card.color}, ${card.color}dd)`,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text'
+                    }}>
+                      {loading ? '...' : card.count}
+                    </h2>
+                    
+                    <p style={{ 
+                      fontSize: '1.1rem', 
+                      color: '#2c3e50', 
+                      margin: '0 0 6px 0',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      {card.label}
+                    </p>
+                    
+                    <small style={{ 
+                      color: '#7f8c8d', 
+                      fontSize: '0.9rem',
+                      display: 'block',
+                      marginBottom: '12px'
+                    }}>
+                      {card.sublabel}
+                    </small>
+                  </div>
+
+                  {/* Bottom Section */}
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginTop: 'auto'
+                  }}>
+                    <div style={{
+                      padding: '6px 12px',
+                      background: `linear-gradient(135deg, ${card.color}20, ${card.color}10)`,
+                      borderRadius: '15px',
+                      border: `1px solid ${card.color}30`
+                    }}>
+                      <small style={{ 
+                        color: card.color,
+                        fontSize: '0.8rem',
+                        fontWeight: '600'
+                      }}>
+                        {card.trend}
+                      </small>
+                    </div>
+
+                    {card.link && (
+                      <div style={{
+                        width: '35px',
+                        height: '35px',
+                        borderRadius: '50%',
+                        background: `linear-gradient(135deg, ${card.color}, ${card.color}dd)`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: '14px',
+                        boxShadow: `0 4px 15px ${card.color}40`,
+                        transition: 'transform 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'scale(1)';
+                      }}>
+                        <i className="fas fa-arrow-right"></i>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Hover Effect Overlay */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: `linear-gradient(135deg, ${card.color}05, transparent)`,
+                  opacity: 0,
+                  transition: 'opacity 0.3s ease',
+                  pointerEvents: 'none'
+                }} className="card-hover-overlay"></div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Secondary Stats */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '20px',
+          marginBottom: '30px'
+        }}>
+          {secondaryCards.map((card, idx) => (
+            <div key={idx} style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              boxShadow: '0 3px 15px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '15px',
+              transition: 'transform 0.3s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              
+              <div style={{
+                width: '45px',
+                height: '45px',
+                borderRadius: '50%',
+                background: `${card.color}15`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: card.color,
+                fontSize: '18px',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                {card.image && (
+                  <img 
+                    src={card.image} 
+                    alt={card.label}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '50%',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      opacity: 0.8
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  {card.icon}
+                </div>
+              </div>
+              
+              <div>
+                <h4 style={{ 
+                  fontSize: '1.3rem', 
+                  fontWeight: 'bold', 
+                  color: '#2c3e50',
+                  margin: 0
+                }}>
+                  {loading ? '...' : card.count}
+                </h4>
+                <p style={{ 
+                  color: '#7f8c8d', 
+                  margin: 0,
+                  fontSize: '0.9rem'
+                }}>
+                  {card.label}
+                </p>
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* Recent Activity */}
+        <div style={{
+          background: 'white',
+          borderRadius: '15px',
+          padding: '25px',
+          boxShadow: '0 5px 20px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '20px',
+            paddingBottom: '15px',
+            borderBottom: '2px solid #f8f9fa'
+          }}>
+            <h3 style={{ color: '#2c3e50', margin: 0, fontSize: '1.3rem' }}>
+              🕐 Recent Bookings
+            </h3>
+            <Link 
+              to="/pending-bookings" 
+              style={{ 
+                color: '#e74c3c', 
+                textDecoration: 'none',
+                fontWeight: 'bold',
+                fontSize: '0.9rem'
+              }}
+            >
+              View All <i className="fas fa-arrow-right"></i>
+            </Link>
+          </div>
+          
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#7f8c8d' }}>
+              <i className="fas fa-spinner fa-spin" style={{ fontSize: '24px', marginBottom: '10px' }}></i>
+              <p>Loading recent bookings...</p>
+            </div>
+          ) : recentBookings.length > 0 ? (
+            <div style={{ overflowX: 'auto' }}>
+              {recentBookings.map((booking, idx) => (
+                <div key={idx} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  marginBottom: '10px',
+                  background: idx % 2 === 0 ? '#f8f9fa' : 'white',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <div style={{ flex: '0 0 80px', fontWeight: 'bold', color: '#007bff' }}>
+                    #{booking.bookingId || `BK${booking._id?.slice(-4)}`}
+                  </div>
+                  <div style={{ flex: '1', minWidth: '150px' }}>
+                    {booking.name} {booking.lastName}
+                  </div>
+                  <div style={{ flex: '1', minWidth: '120px', color: '#6c757d' }}>
+                    {booking.vehicleDetails?.brandName} {booking.vehicleDetails?.modelName}
+                  </div>
+                  <div style={{ flex: '0 0 100px', color: '#6c757d' }}>
+                    {new Date(booking.pickTime).toLocaleDateString()}
+                  </div>
+                  <div style={{ flex: '0 0 80px' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      background: booking.status === 'completed' ? '#d4edda' : 
+                                booking.status === 'pending' ? '#fff3cd' : '#f8d7da',
+                      color: booking.status === 'completed' ? '#155724' :
+                             booking.status === 'pending' ? '#856404' : '#721c24'
+                    }}>
+                      {booking.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#7f8c8d' }}>
+              <i className="fas fa-calendar-times" style={{ fontSize: '48px', marginBottom: '15px', color: '#dee2e6' }}></i>
+              <h4>No Recent Bookings</h4>
+              <p>No bookings found in the system yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div style={{ marginTop: '30px' }}>
+          <h3 style={{ color: '#2c3e50', marginBottom: '20px', fontSize: '1.3rem' }}>
+            ⚡ Quick Actions
+          </h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px'
+          }}>
+            {[
+              { icon: 'fas fa-car', title: 'Add Vehicle', desc: 'Register new vehicle', path: '/VehicleRegister', color: '#007bff', image: addVehicleImg },
+              { icon: 'fas fa-user-plus', title: 'Add Driver', desc: 'Register new driver', path: '/DriverRegister', color: '#28a745', image: addDriverImg },
+              { icon: 'fas fa-calendar-plus', title: 'New Booking', desc: 'Create booking', path: '/bookcar', color: '#17a2b8', image: newBookingImg },
+              { icon: 'fas fa-chart-line', title: 'View Reports', desc: 'Analytics & reports', path: '/reports', color: '#6f42c1', image: viewReportsImg }
+            ].map((action, idx) => (
+              <Link 
+                key={idx}
+                to={action.path}
+                style={{
+                  background: 'white',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  boxShadow: '0 3px 15px rgba(0,0,0,0.08)',
+                  border: `2px solid ${action.color}20`,
+                  transition: 'all 0.3s ease',
+                  textAlign: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.borderColor = action.color;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = `${action.color}20`;
+                }}
+              >
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  background: `${action.color}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 15px',
+                  fontSize: '20px',
+                  color: action.color,
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  {action.image && (
+                    <img 
+                      src={action.image} 
+                      alt={action.title}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        opacity: 0.9
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <i className={action.icon}></i>
+                  </div>
+                </div>
+                <h4 style={{ margin: '0 0 5px 0', color: '#2c3e50' }}>{action.title}</h4>
+                <p style={{ margin: 0, color: '#7f8c8d', fontSize: '0.9rem' }}>{action.desc}</p>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>
