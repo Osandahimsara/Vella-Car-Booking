@@ -72,17 +72,17 @@ const AdminPage = () => {
             <i className="fas fa-user-plus"></i>
             <Link to="/DriverRegister" className="nav-link">Add Drivers</Link>
           </div>
-          <div className="nav-button">
+           <div className="nav-button">
             <i className="fas fa-car"></i>
-            <Link to="/add-vehicle" className="nav-link">Add Vehicle</Link>
+            <Link to="/VehicleRegister" className="nav-link">Add Vehicle</Link> {/* UPDATED */}
           </div>
           <div className="nav-button">
             <i className="fas fa-car-side"></i>
-            <Link to="/registered-vehicles" className="nav-link">Registered Vehicles</Link>
+            <Link to="/vehicles" className="nav-link">Registered Vehicles</Link> {/* UPDATED */}
           </div>
           <div className="nav-button">
             <i className="fas fa-id-badge"></i>
-            <Link to="/registered-drivers" className="nav-link">Registered Drivers</Link>
+            <Link to="/Drivers" className="nav-link">Registered Drivers</Link>
           </div>
           <div className="nav-button">
             <i className="fas fa-list"></i>

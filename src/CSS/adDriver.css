@@ -308,57 +308,9 @@ button:disabled:hover {
 /* Image Upload Styles */
 .image-upload-container {
   position: relative;
-  display: inline-block;
   cursor: pointer;
-}
-
-.file-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.upload-placeholder {
-  width: 200px;
-  height: 200px;
-  border: 3px dashed #ddd;
-  border-radius: 15px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #f8f9fa;
-  transition: all 0.3s ease;
-  margin: 0 auto;
-}
-
-.upload-placeholder:hover {
-  border-color: #4caf50;
-  background: #f0fff4;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
-}
-
-.upload-icon {
-  font-size: 3rem;
-  margin-bottom: 10px;
-  color: #666;
-}
-
-.upload-placeholder p {
-  margin: 5px 0;
-  color: #666;
-  font-weight: 600;
-}
-
-.upload-placeholder small {
-  color: #999;
-  font-size: 12px;
+  margin-bottom: 15px;
+  display: inline-block; /* Important for proper clicking */
 }
 
 .image-preview {
@@ -371,79 +323,92 @@ button:disabled:hover {
   height: 200px;
   object-fit: cover;
   border-radius: 15px;
-  border: 3px solid #4caf50;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.preview-image:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border: 3px solid #ff4d30;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
 }
 
 .remove-image-btn {
   position: absolute;
   top: -10px;
   right: -10px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #dc3545;
+  background: #ff4d30;
   color: white;
   border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
-  z-index: 3;
+  z-index: 10;
 }
 
 .remove-image-btn:hover {
-  background: #c82333;
+  background: #e63946;
   transform: scale(1.1);
-  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
 }
 
-/* Responsive Image Upload */
-@media (max-width: 768px) {
-  .upload-placeholder,
-  .preview-image {
-    width: 150px;
-    height: 150px;
-  }
-  
-  .upload-icon {
-    font-size: 2rem;
-  }
-  
-  .upload-placeholder p {
-    font-size: 14px;
-  }
+.upload-placeholder {
+  width: 200px;
+  height: 200px;
+  border: 3px dashed #ff4d30;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+  cursor: pointer; /* Important */
+  user-select: none; /* Prevent text selection */
 }
 
-@media (max-width: 480px) {
-  .upload-placeholder,
-  .preview-image {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .upload-icon {
-    font-size: 1.5rem;
-  }
-  
-  .upload-placeholder p {
-    font-size: 12px;
-  }
-  
-  .remove-image-btn {
-    width: 25px;
-    height: 25px;
-    font-size: 14px;
-  }
+.upload-placeholder:hover {
+  background: #e9ecef;
+  border-color: #e63946;
+  transform: scale(1.02);
+}
+
+.upload-placeholder:active {
+  transform: scale(0.98);
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+  color: #ff4d30;
+  pointer-events: none; /* Let clicks pass through */
+}
+
+.upload-placeholder p {
+  color: #666;
+  margin: 5px 0;
+  font-weight: bold;
+  pointer-events: none; /* Let clicks pass through */
+}
+
+.upload-placeholder small {
+  color: #999;
+  font-size: 12px;
+  pointer-events: none; /* Let clicks pass through */
+}
+
+.file-input {
+  display: none !important; /* Make sure it's hidden */
+}
+
+/* Add hover effects for better UX */
+.image-upload-container:hover .upload-placeholder {
+  border-color: #e63946;
+  background: #e9ecef;
+}
+
+.image-upload-container:hover .preview-image {
+  transform: scale(1.05);
 }
 
 /* Add to existing styles... */

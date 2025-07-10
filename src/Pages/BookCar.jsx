@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import CarAudi from "../images/cars-big/audia1.jpg";
-import CarGolf from "../images/cars-big/golf6.jpg";
-import CarToyota from "../images/cars-big/toyotacamry.jpg";
-import CarBmw from "../images/cars-big/bmw320.jpg";
-import CarMercedes from "../images/cars-big/benz.jpg";
-import CarPassat from "../images/cars-big/passatcc.jpg";
 import "../CSS/book.css";
 import Footer from "../components/Footer";
 import citiesData from "../components/cities.json";
@@ -14,6 +8,7 @@ function BookCar() {
   const [modal, setModal] = useState(false); 
   const [successMessage, setSuccessMessage] = useState(false); 
   const [carType, setCarType] = useState("");
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [pickUp, setPickUp] = useState("");
   const [dropOff, setDropOff] = useState("");
   const [pickTime, setPickTime] = useState("");
@@ -21,7 +16,6 @@ function BookCar() {
   const [dropTime, setDropTime] = useState("");
   const [dropOffTime, setDropOffTime] = useState("");
   const [driver, setDriver] = useState("");
-  const [carImg, setCarImg] = useState("");
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -32,6 +26,13 @@ function BookCar() {
   const [bookingId, setBookingId] = useState("");
   const [availableDrivers, setAvailableDrivers] = useState([]);
   const [driverLoading, setDriverLoading] = useState(false);
+  const [availableVehicles, setAvailableVehicles] = useState([]);
+  const [vehicleLoading, setVehicleLoading] = useState(false);
+
+  // Availability status states
+  const [vehicleAvailabilityMessage, setVehicleAvailabilityMessage] = useState("");
+  const [driverAvailabilityMessage, setDriverAvailabilityMessage] = useState("");
+  const [selectedDriverDetails, setSelectedDriverDetails] = useState(null);
 
   // validation error states
   const [errors, setErrors] = useState({
@@ -42,67 +43,186 @@ function BookCar() {
     email: ""
   });
 
-  // Load cities from JSON file when component mounts
+  // Load cities and vehicles from server when component mounts
   useEffect(() => {
     loadCitiesFromJSON();
+    fetchAvailableVehicles();
   }, []);
 
-  // UPDATED: Fetch drivers based on selected dates/times
+  // Fetch drivers based on selected dates/times with debugging
   useEffect(() => {
-    // Only fetch drivers when we have pick-up and drop-off details
+    console.log('📅 Dates/times changed:', { pickTime, dropTime, pickUpTime, dropOffTime });
+    
     if (pickTime && dropTime && pickUpTime && dropOffTime) {
+      console.log('✅ All dates/times selected, fetching available drivers...');
       fetchAvailableDrivers();
+      
+      // Check vehicle availability when dates change
+      if (selectedVehicle) {
+        console.log('🚗 Checking vehicle availability...');
+        checkVehicleAvailability(selectedVehicle._id);
+      }
+      
+      // Check driver availability when dates change
+      if (driver) {
+        console.log('👨‍💼 Checking driver availability...');
+        checkDriverAvailability(driver);
+      }
     } else {
-      // If no dates selected, fetch all drivers
+      console.log('⚠️ Missing dates/times, fetching all drivers...');
       fetchAllDrivers();
+      setVehicleAvailabilityMessage("");
+      setDriverAvailabilityMessage("");
     }
-  }, [pickTime, dropTime, pickUpTime, dropOffTime]); // Add dependencies
+  }, [pickTime, dropTime, pickUpTime, dropOffTime]);
 
- // Update the fetchAvailableDrivers function with more debugging
-const fetchAvailableDrivers = async () => {
-  try {
-    setDriverLoading(true);
-    console.log('🔍 Fetching available drivers for:', { pickTime, dropTime, pickUpTime, dropOffTime });
-    
-    const params = new URLSearchParams({
-      pickUpDate: pickTime,
-      dropOffDate: dropTime,
-      pickUpTime: pickUpTime,
-      dropOffTime: dropOffTime
-    });
-    
-    const url = `http://localhost:8000/api/driver/available?${params}`;
-    console.log('📞 Making request to:', url);
-    
-    const response = await axios.get(url);
-    console.log('✅ Available drivers response:', response.data);
-    
-    setAvailableDrivers(response.data.availableDrivers || []);
-    
-    // Log detailed availability info
-    if (response.data.conflictingBookings > 0) {
-      console.log(`⚠️ Found ${response.data.conflictingBookings} conflicting bookings`);
-      console.log('🚫 Booked drivers:', response.data.bookedDrivers);
+  // Check vehicle availability for selected dates
+  const checkVehicleAvailability = async (vehicleId) => {
+    if (!pickTime || !dropTime || !pickUpTime || !dropOffTime) {
+      setVehicleAvailabilityMessage("");
+      return;
     }
-    
-    console.log(`📊 Available: ${response.data.availableDrivers?.length || 0} / Total: ${response.data.totalDrivers}`);
-    
-    // Clear selected driver if they're no longer available
-    if (driver && response.data.bookedDrivers && response.data.bookedDrivers.includes(driver)) {
-      setDriver("");
-      alert(`Driver ${driver} is no longer available for the selected time. Please choose another driver.`);
-    }
-    
-  } catch (error) {
-    console.error('❌ Error fetching available drivers:', error);
-    console.error('Error details:', error.response?.data);
-    setAvailableDrivers([]);
-  } finally {
-    setDriverLoading(false);
-  }
-};
 
-  // UPDATED: Fetch all drivers (when no dates selected)
+    try {
+      setVehicleAvailabilityMessage("🔄 Checking vehicle availability...");
+      
+      const params = new URLSearchParams({
+        vehicleId: vehicleId,
+        pickUpDate: pickTime,
+        dropOffDate: dropTime,
+        pickUpTime: pickUpTime,
+        dropOffTime: dropOffTime
+      });
+
+      const response = await axios.get(`http://localhost:8000/api/vehicles/check-availability?${params}`);
+      console.log('🚗 Vehicle availability response:', response.data);
+      
+      if (response.data.available) {
+        setVehicleAvailabilityMessage("✅ Vehicle is available for selected dates");
+      } else {
+        setVehicleAvailabilityMessage(`❌ Vehicle is not available (${response.data.conflictingBookings} conflicting bookings)`);
+      }
+    } catch (error) {
+      console.error('❌ Error checking vehicle availability:', error);
+      setVehicleAvailabilityMessage("⚠️ Unable to check vehicle availability");
+    }
+  };
+
+  // FIXED: Check individual driver availability with enhanced debugging
+  const checkDriverAvailability = async (driverName) => {
+    console.log('🔍 Checking driver availability for:', driverName);
+    
+    if (!pickTime || !dropTime || !pickUpTime || !dropOffTime) {
+      setDriverAvailabilityMessage("ℹ️ Select dates and times to check availability");
+      return;
+    }
+
+    if (!driverName) {
+      setDriverAvailabilityMessage("");
+      return;
+    }
+
+    try {
+      setDriverAvailabilityMessage("🔄 Checking driver availability...");
+      
+      const params = new URLSearchParams({
+        driverName: driverName,
+        pickUpDate: pickTime,
+        dropOffDate: dropTime,
+        pickUpTime: pickUpTime,
+        dropOffTime: dropOffTime
+      });
+
+      const url = `http://localhost:8000/api/driver/check-individual?${params}`;
+      console.log('📞 Making driver availability request to:', url);
+      
+      const response = await axios.get(url);
+      console.log('✅ Driver availability response:', response.data);
+      
+      if (response.data.available) {
+        setDriverAvailabilityMessage("✅ Driver is available for selected dates");
+      } else {
+        setDriverAvailabilityMessage(`❌ Driver is not available (${response.data.conflictingBookings} conflicting bookings)`);
+      }
+    } catch (error) {
+      console.error('❌ Error checking driver availability:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.response?.status === 404) {
+        setDriverAvailabilityMessage("❌ Driver availability check endpoint not found");
+      } else {
+        setDriverAvailabilityMessage("⚠️ Unable to check driver availability");
+      }
+    }
+  };
+
+  // Fetch available vehicles from database
+  const fetchAvailableVehicles = async () => {
+    try {
+      setVehicleLoading(true);
+      console.log('🚗 Fetching available vehicles...');
+      const response = await axios.get('http://localhost:8000/api/vehicles');
+      console.log('✅ Vehicles response:', response.data);
+      
+      const activeVehicles = response.data.filter(vehicle => vehicle.status === 'active');
+      setAvailableVehicles(activeVehicles);
+      console.log(`📊 Found ${activeVehicles.length} active vehicles`);
+      
+    } catch (error) {
+      console.error('❌ Error fetching vehicles:', error);
+      setAvailableVehicles([]);
+    } finally {
+      setVehicleLoading(false);
+    }
+  };
+
+  // Fetch available drivers
+  const fetchAvailableDrivers = async () => {
+    try {
+      setDriverLoading(true);
+      console.log('🔍 Fetching available drivers for:', { pickTime, dropTime, pickUpTime, dropOffTime });
+      
+      const params = new URLSearchParams({
+        pickUpDate: pickTime,
+        dropOffDate: dropTime,
+        pickUpTime: pickUpTime,
+        dropOffTime: dropOffTime
+      });
+      
+      const url = `http://localhost:8000/api/driver/available?${params}`;
+      console.log('📞 Making request to:', url);
+      
+      const response = await axios.get(url);
+      console.log('✅ Available drivers response:', response.data);
+      
+      setAvailableDrivers(response.data.availableDrivers || []);
+      
+      if (response.data.conflictingBookings > 0) {
+        console.log(`⚠️ Found ${response.data.conflictingBookings} conflicting bookings`);
+        console.log('🚫 Booked drivers:', response.data.bookedDrivers);
+      }
+      
+      console.log(`📊 Available: ${response.data.availableDrivers?.length || 0} / Total: ${response.data.totalDrivers}`);
+      
+      // Check if currently selected driver is still available
+      if (driver && response.data.bookedDrivers && response.data.bookedDrivers.includes(driver)) {
+        setDriver("");
+        setDriverAvailabilityMessage("❌ Previously selected driver is no longer available");
+        setSelectedDriverDetails(null);
+        alert(`Driver ${driver} is no longer available for the selected time. Please choose another driver.`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching available drivers:', error);
+      console.error('Error details:', error.response?.data);
+      setAvailableDrivers([]);
+    } finally {
+      setDriverLoading(false);
+    }
+  };
+
+  // Fetch all drivers (when no dates selected)
   const fetchAllDrivers = async () => {
     try {
       setDriverLoading(true);
@@ -120,30 +240,18 @@ const fetchAvailableDrivers = async () => {
     }
   };
 
-  // NEW: Manual refresh function
-  const refreshDriverAvailability = () => {
-    if (pickTime && dropTime && pickUpTime && dropOffTime) {
-      fetchAvailableDrivers();
-    } else {
-      alert('Please select pickup and drop-off dates and times first');
-    }
-  };
-
-  // Alternative approach - grouped by districts
+  // Load cities from JSON
   const loadCitiesFromJSON = () => {
     try {
       const cityOptions = [];
       
-      // Loop through each district
       Object.keys(citiesData).forEach(district => {
-        // Add district header (disabled option)
         cityOptions.push({
           value: '',
           label: `--- ${district} District ---`,
           disabled: true
         });
         
-        // Add all cities from this district
         citiesData[district].cities.forEach(city => {
           cityOptions.push({
             value: `${city}, ${district}`,
@@ -247,7 +355,7 @@ const fetchAvailableDrivers = async () => {
     }
   };
 
-  // UPDATED: confirmBooking function with driver conflict handling
+  // confirmBooking function with vehicle details
   const confirmBooking = async (e) => {
     e.preventDefault();
     
@@ -284,19 +392,15 @@ const fetchAvailableDrivers = async () => {
       newErrors.email = "Please enter a valid email address (e.g., user@example.com)";
     }
     
-    // Update error states
     setErrors(newErrors);
     
-    // If there are errors, don't submit
     if (Object.keys(newErrors).length > 0) {
-      // Show error message
       const errorMsg = document.querySelector(".error-message");
       if (errorMsg) {
         errorMsg.style.display = "flex";
         errorMsg.textContent = "Please fix the errors below!";
       }
       
-      // Scroll to first error
       const firstErrorField = Object.keys(newErrors)[0];
       const errorElement = document.querySelector(`input[name="${firstErrorField}"]`);
       if (errorElement) {
@@ -308,8 +412,17 @@ const fetchAvailableDrivers = async () => {
 
     setLoading(true);
 
+    // Include vehicle details in booking
     const bookingData = {
       carType,
+      vehicleDetails: selectedVehicle ? {
+        vehicleId: selectedVehicle._id,
+        brandName: selectedVehicle.brandName,
+        modelName: selectedVehicle.modelName,
+        vehicleNumber: selectedVehicle.vehicleNumber,
+        year: selectedVehicle.year,
+        fuelType: selectedVehicle.fuelType
+      } : null,
       pickUp,
       dropOff,
       pickTime,
@@ -342,12 +455,10 @@ const fetchAvailableDrivers = async () => {
     } catch (error) {
       console.error("Error saving booking:", error);
       
-      // Handle driver conflict (409 status)
       if (error.response?.status === 409) {
         alert(error.response.data.message);
-        // Refresh driver list
         fetchAvailableDrivers();
-        setDriver(""); // Clear selected driver
+        setDriver("");
       } else {
         alert("Booking failed. Please try again.");
       }
@@ -357,24 +468,77 @@ const fetchAvailableDrivers = async () => {
   };
 
   // Handle booking inputs
-  const handleCar = (e) => {setCarType(e.target.value);setCarImg(e.target.value);};
   const handlePick = (e) => setPickUp(e.target.value);
   const handleDrop = (e) => setDropOff(e.target.value);
   const handlePickTime = (e) => setPickTime(e.target.value);
   const handleDropTime = (e) => setDropTime(e.target.value);
-  const handleDriver = (e) => setDriver(e.target.value);
 
-  // UPDATED: Open modal validation to include driver
+  // Handle vehicle selection with availability check
+  const handleVehicleSelect = (e) => {
+    const vehicleId = e.target.value;
+    
+    if (vehicleId) {
+      const vehicle = availableVehicles.find(v => v._id === vehicleId);
+      if (vehicle) {
+        setSelectedVehicle(vehicle);
+        setCarType(`${vehicle.brandName} ${vehicle.modelName}`);
+        console.log('🚗 Selected vehicle:', vehicle);
+        
+        // Check availability immediately if dates are selected
+        if (pickTime && dropTime && pickUpTime && dropOffTime) {
+          checkVehicleAvailability(vehicleId);
+        } else {
+          setVehicleAvailabilityMessage("ℹ️ Select dates to check availability");
+        }
+      }
+    } else {
+      setSelectedVehicle(null);
+      setCarType("");
+      setVehicleAvailabilityMessage("");
+    }
+  };
+
+  // FIXED: Handle driver selection with availability check
+  const handleDriver = (e) => {
+    const driverName = e.target.value;
+    console.log('👨‍💼 Driver selected:', driverName);
+    setDriver(driverName);
+    
+    if (driverName) {
+      // Find driver details
+      const driverData = availableDrivers.find(d => 
+        `${d.firstName} ${d.lastName}` === driverName
+      );
+      
+      if (driverData) {
+        setSelectedDriverDetails(driverData);
+        console.log('👨‍💼 Selected driver details:', driverData);
+        
+        // Check availability immediately if dates are selected
+        if (pickTime && dropTime && pickUpTime && dropOffTime) {
+          console.log('📅 Dates available, checking driver availability...');
+          checkDriverAvailability(driverName);
+        } else {
+          setDriverAvailabilityMessage("ℹ️ Select dates and times to check availability");
+        }
+      }
+    } else {
+      setSelectedDriverDetails(null);
+      setDriverAvailabilityMessage("");
+    }
+  };
+
+  // Open modal validation to include vehicle
   const openModal = (e) => {
     e.preventDefault();
     const errorMsg = document.querySelector(".error-message");
     if (!pickUp || !dropOff || !pickTime || !dropTime || !carType || !driver) {
       errorMsg.style.display = "flex";
-      errorMsg.textContent = "All fields including driver selection are required!";
+      errorMsg.textContent = "All fields including vehicle and driver selection are required!";
     } else {
       setModal(!modal);
       const modalDiv = document.querySelector(".booking-modal");
-      modalDiv.scroll(0, 0);
+      if (modalDiv) modalDiv.scroll(0, 0);
       errorMsg.style.display = "none";
     }
   };
@@ -387,40 +551,15 @@ const fetchAvailableDrivers = async () => {
   // Hide success message
   const hideMessage = () => {
     const doneMsg = document.querySelector(".booking-done");
-    doneMsg.style.display = "none";
+    if (doneMsg) doneMsg.style.display = "none";
   };
-
-  // Show car image based on selected car type
-  let imgUrl;
-  switch (carImg) {
-    case "Audi A1 S-Line":
-      imgUrl = CarAudi;
-      break;
-    case "VW Golf 6":
-      imgUrl = CarGolf;
-      break;
-    case "Toyota Camry":
-      imgUrl = CarToyota;
-      break;
-    case "BMW 320 ModernLine":
-      imgUrl = CarBmw;
-      break;
-    case "Mercedes-Benz GLK":
-      imgUrl = CarMercedes;
-      break;
-    case "VW Passat CC":
-      imgUrl = CarPassat;
-      break;
-    default:
-      imgUrl = "";
-  }
 
   return (
     <>       
       <section id="booking-section" className="book-section">
         {/* Overlay */}
         <div
-          onClick={openModal}
+          onClick={() => setModal(false)}
           className={`modal-overlay ${modal ? "active-modal" : ""}`}
         ></div>
 
@@ -439,25 +578,51 @@ const fetchAvailableDrivers = async () => {
               </p>
 
               <form className="box-form">
+                {/* Dynamic Vehicle Selection with Availability */}
                 <div className="box-form__car-type">
                   <label>
-                    <i className="fa-solid fa-car"></i> &nbsp; Select Your Car
-                    Type <b>*</b>
+                    <i className="fa-solid fa-car"></i> &nbsp; Select Vehicle <b>*</b>
                   </label>
-                  <select value={carType} onChange={handleCar}>
-                    <option>Select your car type</option>
-                    <option value="Audi A1 S-Line">Audi A1 S-Line</option>
-                    <option value="VW Golf 6">VW Golf 6</option>
-                    <option value="Toyota Camry">Toyota Camry</option>
-                    <option value="BMW 320 ModernLine">
-                      BMW 320 ModernLine
+                  <select value={selectedVehicle?._id || ""} onChange={handleVehicleSelect} disabled={vehicleLoading}>
+                    <option value="">
+                      {vehicleLoading ? "Loading vehicles..." : "Select your vehicle"}
                     </option>
-                    <option value="Mercedes-Benz GLK">Mercedes-Benz GLK</option>
-                    <option value="VW Passat CC">VW Passat CC</option>
+                    {availableVehicles.length > 0 ? (
+                      availableVehicles.map((vehicle) => (
+                        <option key={vehicle._id} value={vehicle._id}>
+                          {vehicle.brandName} {vehicle.modelName} ({vehicle.year}) - {vehicle.vehicleNumber}
+                        </option>
+                      ))
+                    ) : (
+                      !vehicleLoading && (
+                        <option disabled>No vehicles available</option>
+                      )
+                    )}
                   </select>
+                  
+                  {/* Show selected vehicle details and availability */}
+                  {selectedVehicle && (
+                    <div style={{ marginTop: '10px' }}>
+                      <small style={{ color: '#666', fontSize: '12px', display: 'block' }}>
+                        ✅ {selectedVehicle.brandName} {selectedVehicle.modelName} • {selectedVehicle.fuelType} • {selectedVehicle.year}
+                      </small>
+                      {vehicleAvailabilityMessage && (
+                        <small style={{ 
+                          color: vehicleAvailabilityMessage.includes('✅') ? '#28a745' : 
+                                vehicleAvailabilityMessage.includes('❌') ? '#dc3545' : '#6c757d',
+                          fontSize: '12px', 
+                          display: 'block',
+                          fontWeight: 'bold',
+                          marginTop: '5px'
+                        }}>
+                          {vehicleAvailabilityMessage}
+                        </small>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-               {/* Pick-up Location with grouped cities */}
+               {/* Pick-up Location */}
                 <div className="box-form__car-type">
                   <label>
                     <i className="fa-solid fa-location-dot"></i> &nbsp; Pick-up <b>*</b>
@@ -481,7 +646,7 @@ const fetchAvailableDrivers = async () => {
                   </select>
                 </div>
 
-                {/* Drop-off Location with grouped cities */}
+                {/* Drop-off Location */}
                 <div className="box-form__car-type">
                   <label>
                     <i className="fa-solid fa-location-dot"></i> &nbsp; Drop-off <b>*</b>
@@ -561,7 +726,7 @@ const fetchAvailableDrivers = async () => {
                   />
                 </div>
 
-                               {/* UPDATED: Driver Selection - No manual refresh button */}
+                {/* Driver Selection with Availability */}
                 <div className="box-form__car-type">
                   <label>
                     <i className="fa-solid fa-user"></i> &nbsp; Select Driver <b>*</b>
@@ -596,19 +761,42 @@ const fetchAvailableDrivers = async () => {
                     )}
                   </select>
                   
-                  {/* Show availability info */}
+                  {/* Show driver availability info */}
                   {pickTime && dropTime && (
-                    <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '5px' }}>
-                      {driverLoading ? '🔄 Checking availability...' :
-                       availableDrivers.length > 0 ? 
-                        `✅ ${availableDrivers.length} driver(s) available for ${pickTime} to ${dropTime}` :
-                        `❌ No drivers available for selected time period`
-                      }
-                    </small>
+                    <div style={{ marginTop: '10px' }}>
+                      <small style={{ color: '#666', fontSize: '12px', display: 'block' }}>
+                        {driverLoading ? '🔄 Checking availability...' :
+                         availableDrivers.length > 0 ? 
+                          `✅ ${availableDrivers.length} driver(s) available for ${pickTime} to ${dropTime}` :
+                          `❌ No drivers available for selected time period`
+                        }
+                      </small>
+                      
+                      {/* Show selected driver details and availability */}
+                      {selectedDriverDetails && (
+                        <div style={{ marginTop: '8px' }}>
+                          <small style={{ color: '#666', fontSize: '12px', display: 'block' }}>
+                            👨‍💼 {selectedDriverDetails.firstName} {selectedDriverDetails.lastName} • {selectedDriverDetails.companyName} • Age: {selectedDriverDetails.age}
+                          </small>
+                          {driverAvailabilityMessage && (
+                            <small style={{ 
+                              color: driverAvailabilityMessage.includes('✅') ? '#28a745' : 
+                                    driverAvailabilityMessage.includes('❌') ? '#dc3545' : '#6c757d',
+                              fontSize: '12px', 
+                              display: 'block',
+                              fontWeight: 'bold',
+                              marginTop: '5px'
+                            }}>
+                              {driverAvailabilityMessage}
+                            </small>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 
-                {/* Updated Search button */}
+                {/* Search button */}
                 <button onClick={openModal} type="submit">
                   Search
                 </button>
@@ -619,7 +807,6 @@ const fetchAvailableDrivers = async () => {
         <Footer />
       </section>
 
-      {/* Rest of your existing JSX remains the same... */}
       {/* Success Message */}
       {successMessage && (
         <div className="success-popup-overlay">
@@ -667,12 +854,12 @@ const fetchAvailableDrivers = async () => {
         </div>
       )}
 
-      {/* Modal - Add driver info to the modal */}
+      {/* FIXED: Complete Modal Content */}
       <div className={`booking-modal ${modal ? "active-modal" : ""}`}>
         {/* Title */}
         <div className="booking-modal__title">
           <h2>Complete Reservation</h2>
-          <i onClick={openModal} className="fa-solid fa-xmark"></i>
+          <i onClick={() => setModal(false)} className="fa-solid fa-xmark"></i>
         </div>
 
        {/* Car Info */}
@@ -723,7 +910,7 @@ const fetchAvailableDrivers = async () => {
               </span>
             </div>
 
-            {/* Add driver info to modal */}
+            {/* Driver info in modal */}
             <div className="booking-modal__car-info__dates">
               <span>
                 <i className="fa-solid fa-user"></i>
@@ -734,11 +921,50 @@ const fetchAvailableDrivers = async () => {
               </span>
             </div>
           </div>
+
+          {/* Enhanced vehicle display with details */}
           <div className="booking-modal__car-info__model">
             <h5>
-              <span>Car -</span> {carType}
+              <span>Vehicle -</span> {carType}
             </h5>
-            {imgUrl && <img src={imgUrl} alt="car_img" />}
+            
+            {selectedVehicle && (
+              <div className="vehicle-details-modal">
+                {/* Show vehicle image if available */}
+                {selectedVehicle.vehicleImageUrl && (
+                  <img 
+                    src={`http://localhost:8000${selectedVehicle.vehicleImageUrl}`} 
+                    alt={`${selectedVehicle.brandName} ${selectedVehicle.modelName}`}
+                    style={{
+                      width: '100%',
+                      maxWidth: '300px',
+                      height: 'auto',
+                      borderRadius: '10px',
+                      marginBottom: '15px'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+                
+                {/* Vehicle specifications */}
+                <div className="vehicle-specs" style={{
+                  background: '#f8f9fa',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  marginTop: '15px'
+                }}>
+                  <h6 style={{ marginBottom: '10px', color: '#ff4d30' }}>Vehicle Specifications</h6>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px' }}>
+                    <span><strong>Vehicle Number:</strong> {selectedVehicle.vehicleNumber}</span>
+                    <span><strong>Year:</strong> {selectedVehicle.year}</span>
+                    <span><strong>Fuel Type:</strong> {selectedVehicle.fuelType}</span>
+                    <span><strong>Brand:</strong> {selectedVehicle.brandName}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

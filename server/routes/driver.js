@@ -46,7 +46,126 @@ const uploadsDir = path.join(__dirname, '../uploads/drivers');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
+// Add this POST route after your existing routes but before module.exports:
 
+// POST /api/driver - Create a new driver
+router.post("/", upload.single('driverImage'), async (req, res) => {
+  console.log("=== DRIVER REGISTRATION DEBUG ===");
+  console.log("Request body:", req.body);
+  console.log("Uploaded file:", req.file);
+  console.log("================================");
+
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    // Check if driver with same name already exists
+    const existingDriver = await db.collection("drivers").findOne({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName
+    });
+
+    if (existingDriver) {
+      if (req.file) {
+        const filePath = path.join(__dirname, '../uploads/drivers', req.file.filename);
+        fs.unlink(filePath, (err) => {
+          if (err) console.error('Error deleting file:', err);
+        });
+      }
+      return res.status(400).json({ 
+        message: "Driver with this name already exists"
+      });
+    }
+
+    // Prepare driver data
+    const driverData = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      age: parseInt(req.body.age),
+      companyName: req.body.companyName,
+      driverImage: req.file ? req.file.filename : null,
+      registeredAt: new Date(),
+      status: "active" // Set default status as active
+    };
+
+    // Save to database
+    const result = await db.collection("drivers").insertOne(driverData);
+    
+    console.log("Driver data saved successfully:", driverData);
+    
+    res.status(201).json({ 
+      message: "Driver registered successfully",
+      driverId: result.insertedId,
+      driverData: {
+        ...driverData,
+        driverImageUrl: req.file ? `/uploads/drivers/${req.file.filename}` : null
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error registering driver:", error);
+    
+    if (req.file) {
+      const filePath = path.join(__dirname, '../uploads/drivers', req.file.filename);
+      fs.unlink(filePath, (err) => {
+        if (err) console.error('Error deleting file:', err);
+      });
+    }
+    
+    res.status(500).json({ 
+      message: "Error registering driver", 
+      error: error.message 
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// DELETE /api/driver/:id - Delete a driver
+router.delete("/:id", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const driverId = req.params.id;
+    
+    // Find driver first to get image filename
+    const driver = await db.collection("drivers").findOne({
+      _id: new require("mongodb").ObjectId(driverId)
+    });
+    
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+    
+    // Delete driver from database
+    const result = await db.collection("drivers").deleteOne({
+      _id: new require("mongodb").ObjectId(driverId)
+    });
+    
+    // Delete image file if exists
+    if (driver.driverImage) {
+      const imagePath = path.join(__dirname, '../uploads/drivers', driver.driverImage);
+      fs.unlink(imagePath, (err) => {
+        if (err) console.error('Error deleting driver image:', err);
+      });
+    }
+    
+    res.json({ 
+      message: "Driver deleted successfully",
+      deletedCount: result.deletedCount 
+    });
+  } catch (error) {
+    console.error("Error deleting driver:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+module.exports = router;
 // =================== EXISTING DEBUG ROUTES ===================
 // DEBUG ROUTE - Add this temporarily to check driver data
 router.get("/debug", async (req, res) => {
@@ -109,8 +228,7 @@ router.patch("/fix-status", async (req, res) => {
   }
 });
 
-// =================== ADD THESE NEW ROUTES HERE ===================
-// GET /api/driver/available - Get only available drivers for a specific time slot
+// GET /api/driver/available - Get available drivers (THIRD)
 router.get("/available", async (req, res) => {
   const client = new MongoClient(Db);
   try {
@@ -119,75 +237,271 @@ router.get("/available", async (req, res) => {
     
     const { pickUpDate, dropOffDate, pickUpTime, dropOffTime } = req.query;
     
+    console.log("=== AVAILABLE DRIVERS REQUEST ===");
+    console.log("Query params:", { pickUpDate, dropOffDate, pickUpTime, dropOffTime });
+    
     if (!pickUpDate || !dropOffDate) {
-      return res.status(400).json({ message: "Pick-up and drop-off dates are required" });
+      // Return all active drivers if no dates provided
+      console.log("No dates provided, returning all active drivers");
+      const allDrivers = await db.collection("drivers").find({ 
+        status: "active" 
+      }).toArray();
+      
+      return res.status(200).json({
+        availableDrivers: allDrivers,
+        totalDrivers: allDrivers.length,
+        conflictingBookings: 0,
+        bookedDrivers: []
+      });
     }
     
     // Create date-time objects for comparison
     const bookingStart = new Date(`${pickUpDate}T${pickUpTime || '00:00'}`);
     const bookingEnd = new Date(`${dropOffDate}T${dropOffTime || '23:59'}`);
     
-    console.log("Checking availability for:", { bookingStart, bookingEnd });
+    console.log("Checking availability between:", bookingStart, "and", bookingEnd);
     
-    // Get all drivers
-    const allDrivers = await db.collection("drivers").find({ status: "active" }).toArray();
-    
-    // Get all bookings that might conflict with the requested time
+    // Find all conflicting bookings
     const conflictingBookings = await db.collection("bookings").find({
+      status: { $ne: "cancelled" },
       $or: [
         {
-          // Booking starts during our requested period
-          pickTime: { $gte: bookingStart, $lt: bookingEnd }
+          $and: [
+            { pickTime: { $lte: bookingStart } },
+            { dropTime: { $gt: bookingStart } }
+          ]
         },
         {
-          // Booking ends during our requested period
-          dropTime: { $gt: bookingStart, $lte: bookingEnd }
+          $and: [
+            { pickTime: { $lt: bookingEnd } },
+            { dropTime: { $gte: bookingEnd } }
+          ]
         },
         {
-          // Booking completely encompasses our requested period
-          pickTime: { $lte: bookingStart },
-          dropTime: { $gte: bookingEnd }
+          $and: [
+            { pickTime: { $gte: bookingStart } },
+            { pickTime: { $lt: bookingEnd } }
+          ]
         }
       ]
     }).toArray();
     
-    console.log("Conflicting bookings found:", conflictingBookings.length);
+    console.log(`Found ${conflictingBookings.length} conflicting bookings`);
     
-    // Get list of driver names that are already booked
-    const bookedDriverNames = conflictingBookings.map(booking => booking.driver);
+    // Get list of booked drivers
+    const bookedDrivers = conflictingBookings.map(booking => booking.driver);
+    console.log("Booked drivers:", bookedDrivers);
     
-    console.log("Booked drivers:", bookedDriverNames);
+    // Get all active drivers
+    const allDrivers = await db.collection("drivers").find({ 
+      status: "active" 
+    }).toArray();
+    
+    console.log(`Total active drivers: ${allDrivers.length}`);
     
     // Filter out booked drivers
     const availableDrivers = allDrivers.filter(driver => {
-      const driverFullName = `${driver.firstName} ${driver.lastName}`;
-      return !bookedDriverNames.includes(driverFullName);
+      const driverName = `${driver.firstName} ${driver.lastName}`;
+      return !bookedDrivers.includes(driverName);
     });
     
-    console.log("Available drivers:", availableDrivers.length);
-    
-    // Add image URLs
-    const driversWithImageUrls = availableDrivers.map(driver => ({
-      ...driver,
-      driverImageUrl: driver.driverImage ? `/uploads/drivers/${driver.driverImage}` : null
-    }));
+    console.log(`Available drivers: ${availableDrivers.length}`);
+    console.log("Available driver names:", availableDrivers.map(d => `${d.firstName} ${d.lastName}`));
     
     res.status(200).json({
-      availableDrivers: driversWithImageUrls,
+      availableDrivers: availableDrivers,
       totalDrivers: allDrivers.length,
-      bookedDrivers: bookedDriverNames,
+      conflictingBookings: conflictingBookings.length,
+      bookedDrivers: bookedDrivers,
       requestedPeriod: { bookingStart, bookingEnd }
     });
     
   } catch (error) {
-    console.error("Error checking driver availability:", error);
-    res.status(500).json({ message: "Error checking driver availability" });
+    console.error("Error fetching available drivers:", error);
+    res.status(500).json({ 
+      message: "Error fetching available drivers",
+      error: error.message 
+    });
   } finally {
     await client.close();
   }
 });
 
-// Update driver status route
+// GET /api/driver/check-individual - Check individual driver (FOURTH - CRITICAL POSITION!)
+router.get("/check-individual", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const { driverName, pickUpDate, dropOffDate, pickUpTime, dropOffTime } = req.query;
+    
+    console.log("=== INDIVIDUAL DRIVER AVAILABILITY CHECK ===");
+    console.log("Query params:", { driverName, pickUpDate, dropOffDate, pickUpTime, dropOffTime });
+    
+    if (!driverName || !pickUpDate || !dropOffDate) {
+      return res.status(400).json({ 
+        message: "Driver name, pick-up and drop-off dates are required",
+        available: false
+      });
+    }
+    
+    // Create date-time objects for comparison
+    const requestStart = new Date(`${pickUpDate}T${pickUpTime || '00:00'}:00`);
+    const requestEnd = new Date(`${dropOffDate}T${dropOffTime || '23:59'}:59`);
+    
+    // Validate dates
+    if (isNaN(requestStart.getTime()) || isNaN(requestEnd.getTime())) {
+      console.log("Invalid date format:", { requestStart, requestEnd });
+      return res.status(400).json({ 
+        message: "Invalid date format",
+        available: false
+      });
+    }
+    
+    console.log("Checking driver availability between:", requestStart, "and", requestEnd);
+    
+    // IMPROVED: Check for conflicting bookings with better overlap detection
+    const conflictingBookings = await db.collection("bookings").find({
+      driver: driverName,
+      status: { $ne: "cancelled" },
+      $or: [
+        // Case 1: Existing booking starts before request and ends after request starts
+        {
+          $and: [
+            { 
+              $expr: {
+                $lt: [
+                  { $dateFromString: { dateString: { $concat: ["$pickTime", "T", { $ifNull: ["$pickUpTime", "00:00"] }, ":00"] } } },
+                  requestStart
+                ]
+              }
+            },
+            {
+              $expr: {
+                $gt: [
+                  { $dateFromString: { dateString: { $concat: ["$dropTime", "T", { $ifNull: ["$dropOffTime", "23:59"] }, ":59"] } } },
+                  requestStart
+                ]
+              }
+            }
+          ]
+        },
+        // Case 2: Existing booking starts before request ends and ends after request ends
+        {
+          $and: [
+            {
+              $expr: {
+                $lt: [
+                  { $dateFromString: { dateString: { $concat: ["$pickTime", "T", { $ifNull: ["$pickUpTime", "00:00"] }, ":00"] } } },
+                  requestEnd
+                ]
+              }
+            },
+            {
+              $expr: {
+                $gte: [
+                  { $dateFromString: { dateString: { $concat: ["$dropTime", "T", { $ifNull: ["$dropOffTime", "23:59"] }, ":59"] } } },
+                  requestEnd
+                ]
+              }
+            }
+          ]
+        },
+        // Case 3: Existing booking is completely within request period
+        {
+          $and: [
+            {
+              $expr: {
+                $gte: [
+                  { $dateFromString: { dateString: { $concat: ["$pickTime", "T", { $ifNull: ["$pickUpTime", "00:00"] }, ":00"] } } },
+                  requestStart
+                ]
+              }
+            },
+            {
+              $expr: {
+                $lte: [
+                  { $dateFromString: { dateString: { $concat: ["$dropTime", "T", { $ifNull: ["$dropOffTime", "23:59"] }, ":59"] } } },
+                  requestEnd
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }).toArray();
+    
+    console.log(`Found ${conflictingBookings.length} conflicting bookings for driver ${driverName}`);
+    
+    if (conflictingBookings.length > 0) {
+      console.log("Conflicting bookings details:", conflictingBookings.map(b => ({
+        bookingId: b.bookingId,
+        pickTime: b.pickTime,
+        pickUpTime: b.pickUpTime,
+        dropTime: b.dropTime,
+        dropOffTime: b.dropOffTime
+      })));
+    }
+    
+    const available = conflictingBookings.length === 0;
+    
+    res.status(200).json({
+      available: available,
+      driverName: driverName,
+      conflictingBookings: conflictingBookings.length,
+      requestedPeriod: { 
+        start: requestStart.toISOString(), 
+        end: requestEnd.toISOString() 
+      },
+      conflicts: available ? [] : conflictingBookings.map(booking => ({
+        bookingId: booking.bookingId,
+        pickTime: booking.pickTime,
+        pickUpTime: booking.pickUpTime,
+        dropTime: booking.dropTime,
+        dropOffTime: booking.dropOffTime,
+        customer: `${booking.name} ${booking.lastName}`
+      }))
+    });
+    
+  } catch (error) {
+    console.error("Error checking driver availability:", error);
+    res.status(500).json({ 
+      message: "Error checking driver availability",
+      error: error.message,
+      available: false
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// =================== GENERAL ROUTES AFTER SPECIFIC ONES ===================
+
+// GET /api/driver - Get all drivers (PUT AFTER SPECIFIC ROUTES)
+router.get("/", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    const drivers = await db.collection("drivers").find({}).toArray();
+    
+    // Add full image URL to each driver
+    const driversWithImageUrls = drivers.map(driver => ({
+      ...driver,
+      driverImageUrl: driver.driverImage ? `/uploads/drivers/${driver.driverImage}` : null
+    }));
+    
+    res.status(200).json(driversWithImageUrls);
+  } catch (error) {
+    console.error("Error fetching drivers:", error);
+    res.status(500).json({ message: "Error fetching drivers" });
+  } finally {
+    await client.close();
+  }
+});
+
+// PATCH /api/driver/:id/status - Update driver status
 router.patch("/:id/status", async (req, res) => {
   const client = new MongoClient(Db);
   try {
@@ -217,141 +531,15 @@ router.patch("/:id/status", async (req, res) => {
     await client.close();
   }
 });
-// ================================================================
 
-// POST /api/driver - Create a new driver with image
+// POST /api/driver - Create a new driver (EXISTING CODE)
 router.post("/", upload.single('driverImage'), async (req, res) => {
-  console.log("=== DRIVER REGISTRATION DEBUG ===");
-  console.log("Request body:", req.body);
-  console.log("Uploaded file:", req.file);
-  console.log("================================");
-
-  const client = new MongoClient(Db);
-  try {
-    await client.connect();
-    const db = client.db("Car_Booking");
-    
-    // Check if NIC already exists
-    const existingDriver = await db.collection("drivers").findOne({
-      NIC: req.body.NIC
-    });
-
-    if (existingDriver) {
-      // Delete uploaded file if driver already exists
-      if (req.file) {
-        const filePath = path.join(__dirname, '../uploads/drivers', req.file.filename);
-        fs.unlink(filePath, (err) => {
-          if (err) console.error('Error deleting file:', err);
-        });
-      }
-      return res.status(400).json({ 
-        message: "Driver with this NIC already exists"
-      });
-    }
-
-    // Prepare driver data
-    const driverData = {
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      contact: req.body.contact,
-      age: parseInt(req.body.age),
-      NIC: req.body.NIC,
-      DLicenceNo: req.body.DLicenceNo,
-      Address: req.body.Address,
-      companyName: req.body.companyName,
-      driverImage: req.file ? req.file.filename : null,
-      registeredAt: new Date(),
-      status: "active"
-    };
-
-    // Save to database
-    const result = await db.collection("drivers").insertOne(driverData);
-    
-    console.log("Driver data saved successfully:", driverData);
-    res.status(201).json({ 
-      message: "Driver registered successfully",
-      driverId: result.insertedId,
-      driverData: {
-        ...driverData,
-        driverImageUrl: req.file ? `/uploads/drivers/${req.file.filename}` : null
-      }
-    });
-    
-  } catch (error) {
-    console.error("Error registering driver:", error);
-    
-    // Delete uploaded file if database save fails
-    if (req.file) {
-      const filePath = path.join(__dirname, '../uploads/drivers', req.file.filename);
-      fs.unlink(filePath, (err) => {
-        if (err) console.error('Error deleting file:', err);
-      });
-    }
-    
-    res.status(500).json({ 
-      message: "Error registering driver", 
-      error: error.message 
-    });
-  } finally {
-    await client.close();
-  }
+  // ... your existing POST code ...
 });
 
-// GET /api/driver - Get all drivers
-router.get("/", async (req, res) => {
-  const client = new MongoClient(Db);
-  try {
-    await client.connect();
-    const db = client.db("Car_Booking");
-    const drivers = await db.collection("drivers").find({}).toArray();
-    
-    // Add full image URL to each driver
-    const driversWithImageUrls = drivers.map(driver => ({
-      ...driver,
-      driverImageUrl: driver.driverImage ? `/uploads/drivers/${driver.driverImage}` : null
-    }));
-    
-    res.status(200).json(driversWithImageUrls);
-  } catch (error) {
-    console.error("Error fetching drivers:", error);
-    res.status(500).json({ message: "Error fetching drivers" });
-  } finally {
-    await client.close();
-  }
-});
-
-// DELETE /api/driver/:id - Delete a driver
+// DELETE /api/driver/:id - Delete a driver (EXISTING CODE) 
 router.delete("/:id", async (req, res) => {
-  const client = new MongoClient(Db);
-  try {
-    await client.connect();
-    const db = client.db("Car_Booking");
-    
-    // First get the driver to find the image file
-    const driver = await db.collection("drivers").findOne({ _id: new require("mongodb").ObjectId(req.params.id) });
-    
-    if (!driver) {
-      return res.status(404).json({ message: "Driver not found" });
-    }
-    
-    // Delete the driver from database
-    await db.collection("drivers").deleteOne({ _id: new require("mongodb").ObjectId(req.params.id) });
-    
-    // Delete the image file if it exists
-    if (driver.driverImage) {
-      const filePath = path.join(__dirname, '../uploads/drivers', driver.driverImage);
-      fs.unlink(filePath, (err) => {
-        if (err) console.error('Error deleting image file:', err);
-      });
-    }
-    
-    res.status(200).json({ message: "Driver deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting driver:", error);
-    res.status(500).json({ message: "Error deleting driver" });
-  } finally {
-    await client.close();
-  }
+  // ... your existing DELETE code ...
 });
 
 module.exports = router;

@@ -24,7 +24,11 @@ app.use("/api/users", usersRouter);
 const driverRouter = require("./routes/driver");
 app.use("/api/driver", driverRouter);
 
-// Test route to verify server is working
+// Vehicle routes
+const vehicleRouter = require("./routes/vehicle");
+app.use("/api/vehicles", vehicleRouter);
+
+//  route to verify server is working
 app.get("/", (req, res) => {
   res.json({ message: "Server is running!" });
 });

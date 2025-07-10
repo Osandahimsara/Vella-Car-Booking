@@ -34,7 +34,7 @@ function Drivers() {
           <div className="container">
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p>Loading our professional drivers...</p>
+              <p>Loading our drivers...</p>
             </div>
           </div>
           <Footer />
@@ -71,7 +71,7 @@ function Drivers() {
         <section className="drivers-page">
           <div className="container">
             <div className="no-drivers-container">
-              <h2>🚗 No Drivers Available</h2>
+              <h2>No Drivers Available</h2>
               <p>We're currently adding new professional drivers to our team.</p>
               <p>Please check back soon!</p>
             </div>
@@ -87,7 +87,7 @@ function Drivers() {
       <section className="drivers-page">
         <div className="container">
           <div className="drivers-header">
-            <h1>🚗 Our Professional Drivers</h1>
+            <h1> Our Drivers</h1>
             <p>Meet our experienced and certified drivers ready to serve you</p>
           </div>
           
@@ -120,9 +120,12 @@ function Drivers() {
                       <i className="fa-solid fa-phone"></i> {driver.contact}
                     </span>
                   </div>
+                   {/*  License number display */}
+                  {/* 
                   <div className="driver-license">
                     <span>License: {driver.DLicenceNo}</span>
                   </div>
+                  */}
                   <div className="driver-status">
                     <span className={`status-badge ${driver.status}`}>
                       {driver.status === 'active' ? '✅ Available' : '❌ Unavailable'}

@@ -2,6 +2,7 @@ class Booking {
   constructor({
     bookingId, 
     carType,
+    vehicleDetails, // NEW: Add vehicle details
     pickUp,
     dropOff,
     pickTime,
@@ -14,10 +15,10 @@ class Booking {
     phone,
     designation,
     email,
-    
   }) {
     this.bookingId = bookingId; 
     this.carType = carType;
+    this.vehicleDetails = vehicleDetails; // NEW: Store complete vehicle info
     this.pickUp = pickUp;
     this.dropOff = dropOff;
     this.pickTime = pickTime;
@@ -30,6 +31,8 @@ class Booking {
     this.phone = phone;
     this.designation = designation;
     this.email = email;
+    this.status = "confirmed";
+    this.createdAt = new Date();
   }
 }
 

@@ -110,10 +110,11 @@ const adminMailOptions = {
           <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Drop-Off Date & Time:</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee;">🗓️ ${booking.dropTime} ${booking.dropOffTime ? '⏰ ' + booking.dropOffTime : ''}</td>
         </tr>
-     <tr>
+        <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Driver Required:</td>
               <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.driver}</td>
             </tr>
+            
       </table>
 
       <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border-left: 5px solid #17a2b8;">

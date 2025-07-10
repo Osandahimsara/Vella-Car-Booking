@@ -310,7 +310,7 @@ const DriverRegister = () => {
                 Driver Photo <span style={{ color: 'red' }}>*</span>
               </label>
               
-              <div className="image-upload-container">
+              <div className="image-upload-container" onClick={() => document.getElementById('driverImage').click()}>
                 {imagePreview ? (
                   <div className="image-preview">
                     <img 
@@ -320,7 +320,10 @@ const DriverRegister = () => {
                     />
                     <button 
                       type="button" 
-                      onClick={removeImage}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering file input
+                        removeImage();
+                      }}
                       className="remove-image-btn"
                       title="Remove Image"
                     >
@@ -341,12 +344,12 @@ const DriverRegister = () => {
                   accept="image/*"
                   onChange={handleImageChange}
                   className="file-input"
+                  style={{ display: 'none' }} // Hide the actual input
                 />
               </div>
               
               {errors.driverImage && <span className="error">{errors.driverImage}</span>}
             </div>
-
             {/* Names */}
             <div className="row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
               <div>
