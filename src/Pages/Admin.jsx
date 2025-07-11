@@ -80,24 +80,20 @@ const AdminPage = () => {
       setActiveDrivers(6);
       setCompletedBookings(18);
       setRevenue(15420);
+
+
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
 const cards = [
     {
       count: totalVehicles,
       label: "Total Vehicles",
       sublabel: `${activeVehicles} Active`,
-      color: "#007bff",
+      color: "#0078D4",
       icon: <i className="fas fa-car"></i>,
       image: totalVehiclesImg, 
       trend: "+2 this week",
@@ -107,7 +103,7 @@ const cards = [
       count: totalDrivers,
       label: "Total Drivers", 
       sublabel: `${activeDrivers} Active`,
-      color: "#28a745",
+      color: "#107C10",
       icon: <i className="fas fa-user-tie"></i>,
       image: totalDriversImg, 
       trend: "+1 this week",
@@ -117,7 +113,7 @@ const cards = [
       count: pendingBookings,
       label: "Pending Bookings",
       sublabel: "Need attention",
-      color: "#ffc107",
+      color: "#FF8C00",
       icon: <i className="fas fa-clock"></i>,
       image: pendingBookingsImg, 
       trend: pendingBookings > 5 ? "High volume" : "Normal"
@@ -126,7 +122,7 @@ const cards = [
       count: totalBookings,
       label: "Total Bookings",
       sublabel: `${completedBookings} Completed`,
-      color: "#17a2b8",
+      color: "#0078D4",
       icon: <i className="fas fa-calendar-check"></i>,
       image: totalBookingsImg, 
       trend: "+5 this week"
@@ -138,7 +134,7 @@ const cards = [
     {
       count: completedBookings,
       label: "Completed",
-      color: "#28a745",
+      color: "#107C10",
       icon: <i className="fas fa-check-circle"></i>,
       image: completedImg
     },
@@ -146,14 +142,14 @@ const cards = [
     {
       count: totalBookings - completedBookings - pendingBookings,
       label: "Cancelled",
-      color: "#dc3545",
+      color: "#D13438",
       icon: <i className="fas fa-times-circle"></i>,
       image: cancelledImg
     },
     {
       count: `${Math.round((activeVehicles/totalVehicles)*100)}%`,
       label: "Fleet Active",
-      color: "#007bff",
+      color: "#0078D4",
       icon: <i className="fas fa-chart-line"></i>,
       image: fleetActiveImg
     }
@@ -172,7 +168,7 @@ const cards = [
         <div id="nav-header" style={{ padding: '20px', borderBottom: '1px solid #34495e' }}>
           <div className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}
                style={{ 
-                 background: '#e74c3c',
+                 background: '#0078D4',
                  padding: '12px 15px',
                  borderRadius: '8px',
                  cursor: 'pointer',
@@ -186,7 +182,7 @@ const cards = [
             <div style={{ 
               width: '60px', 
               height: '60px', 
-              background: '#e74c3c', 
+              background: '#0078D4', 
               borderRadius: '50%',
               margin: '0 auto 10px',
               display: 'flex',
@@ -215,7 +211,7 @@ const cards = [
             <div key={idx} className="nav-button" style={{
               margin: '5px 15px',
               borderRadius: '8px',
-              backgroundColor: item.active ? '#e74c3c' : 'transparent',
+              backgroundColor: item.active ? '#0078D4' : 'transparent',
               transition: 'all 0.3s ease'
             }}>
               <i className={item.icon} style={{ 
@@ -272,11 +268,11 @@ const cards = [
         
         {/* Enhanced Dashboard Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #0078D4 0%, #005A9E 100%)',
           borderRadius: '20px',
           padding: '40px 35px',
           marginBottom: '35px',
-          boxShadow: '0 15px 35px rgba(102, 126, 234, 0.3)',
+          boxShadow: '0 15px 35px rgba(0, 120, 212, 0.3)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -469,27 +465,28 @@ const cards = [
                 {/* Card Image */}
                 <div style={{
                   position: 'absolute',
-                  top: '15px',
-                  right: '15px',
-                  width: '80px',
-                  height: '80px',
+                  top: '20px',
+                  right: '20px',
+                  width: '90px',
+                  height: '90px',
                   borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${card.color}15, ${card.color}05)`,
+                  background: 'white',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: `2px solid ${card.color}20`,
+                  boxShadow: `0 4px 20px ${card.color}30`,
+                  border: `3px solid ${card.color}20`,
                   overflow: 'hidden'
                 }}>
                   <img 
                     src={card.image} 
                     alt={card.label}
                     style={{
-                      width: '55px',
-                      height: '55px',
+                      width: '65px',
+                      height: '65px',
                       objectFit: 'contain',
-                      filter: `drop-shadow(0 2px 8px ${card.color}40)`,
-                      transition: 'transform 0.3s ease'
+                      transition: 'all 0.3s ease',
+                      filter: 'brightness(1.1) contrast(1.1)'
                     }}
                     onError={(e) => {
                       // Fallback to icon if image fails to load
@@ -499,10 +496,12 @@ const cards = [
                       }
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.transform = 'scale(1.1) rotate(5deg)';
+                      e.target.style.transform = 'scale(1.15)';
+                      e.target.style.filter = 'brightness(1.2) contrast(1.2)';
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.transform = 'scale(1) rotate(0deg)';
+                      e.target.style.transform = 'scale(1)';
+                      e.target.style.filter = 'brightness(1.1) contrast(1.1)';
                     }}
                   />
                   {/* Fallback icon (hidden by default) */}
@@ -562,7 +561,7 @@ const cards = [
                   {/* Bottom Section */}
                   <div style={{ 
                     display: 'flex', 
-                    justifyContent: 'space-between', 
+                    justifyContent: 'flex-start', 
                     alignItems: 'center',
                     marginTop: 'auto'
                   }}>
@@ -580,30 +579,6 @@ const cards = [
                         {card.trend}
                       </small>
                     </div>
-
-                    {card.link && (
-                      <div style={{
-                        width: '35px',
-                        height: '35px',
-                        borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${card.color}, ${card.color}dd)`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontSize: '14px',
-                        boxShadow: `0 4px 15px ${card.color}40`,
-                        transition: 'transform 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.transform = 'scale(1.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.transform = 'scale(1)';
-                      }}>
-                        <i className="fas fa-arrow-right"></i>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -724,7 +699,7 @@ const cards = [
             <Link 
               to="/pending-bookings" 
               style={{ 
-                color: '#e74c3c', 
+                color: '#0078D4', 
                 textDecoration: 'none',
                 fontWeight: 'bold',
                 fontSize: '0.9rem'
@@ -800,10 +775,10 @@ const cards = [
             gap: '20px'
           }}>
             {[
-              { icon: 'fas fa-car', title: 'Add Vehicle', desc: 'Register new vehicle', path: '/VehicleRegister', color: '#007bff', image: addVehicleImg },
-              { icon: 'fas fa-user-plus', title: 'Add Driver', desc: 'Register new driver', path: '/DriverRegister', color: '#28a745', image: addDriverImg },
-              { icon: 'fas fa-calendar-plus', title: 'New Booking', desc: 'Create booking', path: '/bookcar', color: '#17a2b8', image: newBookingImg },
-              { icon: 'fas fa-chart-line', title: 'View Reports', desc: 'Analytics & reports', path: '/reports', color: '#6f42c1', image: viewReportsImg }
+              { icon: 'fas fa-car', title: 'Add Vehicle', desc: 'Register new vehicle', path: '/VehicleRegister', color: '#0078D4', image: addVehicleImg },
+              { icon: 'fas fa-user-plus', title: 'Add Driver', desc: 'Register new driver', path: '/DriverRegister', color: '#107C10', image: addDriverImg },
+              { icon: 'fas fa-calendar-plus', title: 'New Booking', desc: 'Create booking', path: '/bookcar', color: '#FF8C00', image: newBookingImg },
+              { icon: 'fas fa-chart-line', title: 'View Reports', desc: 'Analytics & reports', path: '/reports', color: '#D13438', image: viewReportsImg }
             ].map((action, idx) => (
               <Link 
                 key={idx}
