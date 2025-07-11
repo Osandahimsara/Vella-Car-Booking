@@ -1,6 +1,7 @@
 import '../CSS/adDriver.css';
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const companyOptions = [
   "Vella", "98 Acres", "Ravana Pool Club", "Flying Ravana",
@@ -9,6 +10,7 @@ const companyOptions = [
 ];
 
 const DriverRegister = () => {
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [contact, setContact] = useState('');
@@ -259,13 +261,13 @@ const DriverRegister = () => {
     formData.append('driverImage', driverImage);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/driver', formData, {
+      await axios.post('http://localhost:8000/api/driver', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       alert('Driver registered successfully!');
-      handleReset();
+      // Form will be reset by page navigation or user action
     } catch (err) {
       console.error('Error registering driver:', err);
       if (err.response?.data?.message) {
@@ -276,25 +278,6 @@ const DriverRegister = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Reset form
-  const handleReset = () => {
-    setFirstName('');
-    setLastName('');
-    setContact('');
-    setNIC('');
-    setDLicenceNo('');
-    setAddress('');
-    setAge('');
-    setCompany('');
-    setDriverImage(null);
-    setImagePreview(null);
-    setErrors({});
-    
-    // Clear file input
-    const fileInput = document.getElementById('driverImage');
-    if (fileInput) fileInput.value = '';
   };
 
   return (
@@ -460,10 +443,10 @@ const DriverRegister = () => {
               <button 
                 type="button" 
                 className="btn1" 
-                onClick={handleReset}
+                onClick={() => navigate('/Adminpage')}
                 disabled={loading}
               >
-                Reset
+                Back to Admin
               </button>
               <button 
                 type="submit" 

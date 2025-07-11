@@ -97,7 +97,7 @@ const cards = [
       icon: <i className="fas fa-car"></i>,
       image: totalVehiclesImg, 
       trend: "+2 this week",
-      link: "/AdminVehicleManagement"
+      link: "/AdminVehicles"
     },
     {
       count: totalDrivers,
@@ -107,7 +107,7 @@ const cards = [
       icon: <i className="fas fa-user-tie"></i>,
       image: totalDriversImg, 
       trend: "+1 this week",
-      link: "/AdminDriverManagement"
+      link: "/AdminDrivers"
     },
     {
       count: pendingBookings,

@@ -5,6 +5,7 @@ class Vehicle {
     vehicleNumber,
     year,
     fuelType,
+    seatingCapacity,
     vehicleImage,
   }) {
     this.brandName = brandName;
@@ -12,6 +13,7 @@ class Vehicle {
     this.vehicleNumber = vehicleNumber;
     this.year = year;
     this.fuelType = fuelType;
+    this.seatingCapacity = seatingCapacity;
     this.vehicleImage = vehicleImage;
     this.status = "active";
     this.registeredAt = new Date();

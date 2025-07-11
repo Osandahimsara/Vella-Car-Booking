@@ -165,6 +165,63 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// PUT /api/driver/:id - Update a driver
+router.put("/:id", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const driverId = req.params.id;
+    const updateData = req.body;
+    
+    console.log('Updating driver with ID:', driverId);
+    console.log('Update data:', updateData);
+    
+    // Remove any undefined or null values
+    const cleanUpdateData = Object.keys(updateData).reduce((acc, key) => {
+      if (updateData[key] !== undefined && updateData[key] !== null) {
+        acc[key] = updateData[key];
+      }
+      return acc;
+    }, {});
+    
+    console.log('Clean update data:', cleanUpdateData);
+    
+    const result = await db.collection("drivers").updateOne(
+      { _id: new require("mongodb").ObjectId(driverId) },
+      { $set: cleanUpdateData }
+    );
+    
+    console.log('Update result:', result);
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+    
+    // Get the updated driver
+    const updatedDriver = await db.collection("drivers").findOne({
+      _id: new require("mongodb").ObjectId(driverId)
+    });
+    
+    // Add image URL if driver has an image
+    if (updatedDriver && updatedDriver.driverImage) {
+      updatedDriver.driverImageUrl = `/uploads/drivers/${updatedDriver.driverImage}`;
+    }
+    
+    res.json({ 
+      message: "Driver updated successfully",
+      driver: updatedDriver,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error("Error updating driver:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
 module.exports = router;
 // =================== EXISTING DEBUG ROUTES ===================
 // DEBUG ROUTE - Add this temporarily to check driver data

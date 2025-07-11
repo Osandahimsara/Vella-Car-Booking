@@ -106,27 +106,49 @@ function Vehicles() {
                   ) : (
                     <div className="no-image-placeholder">
                       <i className="fa-solid fa-car"></i>
+                      <span>No Image</span>
                     </div>
                   )}
                 </div>
+                
                 <div className="vehicle-card__info">
                   <h3>{vehicle.brandName} {vehicle.modelName}</h3>
+                  
                   <div className="vehicle-details">
-                    <span className="vehicle-number">
-                      <i className="fa-solid fa-hashtag"></i> {vehicle.vehicleNumber}
-                    </span>
-                    <span className="vehicle-year">
-                      <i className="fa-solid fa-calendar"></i> {vehicle.year}
-                    </span>
-                    <span className="vehicle-fuel">
-                      <i className="fa-solid fa-gas-pump"></i> {vehicle.fuelType}
-                    </span>
+                    <div className="detail-item">
+                      <div>
+                        <div className="detail-label">Vehicle Number</div>
+                        <div className="detail-value">{vehicle.vehicleNumber}</div>
+                      </div>
+                    </div>
+                    <div className="detail-item">
+                     
+                      <div>
+                        <div className="detail-label">Year</div>
+                        <div className="detail-value">{vehicle.year}</div>
+                      </div>
+                    </div>
+                    <div className="detail-item">
+                      
+                      <div>
+                        <div className="detail-label">Fuel Type</div>
+                        <div className="detail-value">{vehicle.fuelType || 'N/A'}</div>
+                      </div>
+                    </div>
+                    <div className="detail-item">
+                   
+                      <div>
+                        <div className="detail-label">Seating</div>
+                        <div className="detail-value">{vehicle.seatingCapacity ? `${vehicle.seatingCapacity} Seats` : 'N/A'}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="vehicle-status">
+                  
+                <div className="vehicle-status">
                     <span className={`status-badge ${vehicle.status}`}>
-                      {vehicle.status === 'active' ? '✅ Available' : 
-                       vehicle.status === 'maintenance' ? '🔧 Maintenance' : 
-                       '❌ Unavailable'}
+                      {vehicle.status === 'active' ? 'Available' : 
+                       vehicle.status === 'maintenance' ? 'Maintenance' : 
+                       'Unavailable'}
                     </span>
                   </div>
                 </div>

@@ -604,7 +604,7 @@ function BookCar() {
                   {selectedVehicle && (
                     <div style={{ marginTop: '10px' }}>
                       <small style={{ color: '#666', fontSize: '12px', display: 'block' }}>
-                        ✅ {selectedVehicle.brandName} {selectedVehicle.modelName} • {selectedVehicle.fuelType} • {selectedVehicle.year}
+                        ✅ {selectedVehicle.brandName} {selectedVehicle.modelName} • {selectedVehicle.fuelType || 'N/A'} • {selectedVehicle.year}
                       </small>
                       {vehicleAvailabilityMessage && (
                         <small style={{ 
@@ -959,8 +959,9 @@ function BookCar() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px' }}>
                     <span><strong>Vehicle Number:</strong> {selectedVehicle.vehicleNumber}</span>
                     <span><strong>Year:</strong> {selectedVehicle.year}</span>
-                    <span><strong>Fuel Type:</strong> {selectedVehicle.fuelType}</span>
+                    <span><strong>Fuel Type:</strong> {selectedVehicle.fuelType || 'N/A'}</span>
                     <span><strong>Brand:</strong> {selectedVehicle.brandName}</span>
+                    <span><strong>Seating Capacity:</strong> {selectedVehicle.seatingCapacity ? `${selectedVehicle.seatingCapacity} seats` : 'N/A'}</span>
                   </div>
                 </div>
               </div>

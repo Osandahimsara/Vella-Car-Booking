@@ -1,6 +1,7 @@
 import '../CSS/adVehicle.css';
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const vehicleBrands = [
   "Toyota", "Honda", "Nissan", "Suzuki", "Mitsubishi", "Mazda",
@@ -13,6 +14,7 @@ const fuelTypes = [
 ];
 
 const VehicleRegister = () => {
+  const navigate = useNavigate();
   const [vehicleImage, setVehicleImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [brandName, setBrandName] = useState('');
@@ -20,6 +22,7 @@ const VehicleRegister = () => {
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [year, setYear] = useState('');
   const [fuelType, setFuelType] = useState('');
+  const [seatingCapacity, setSeatingCapacity] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +51,11 @@ const VehicleRegister = () => {
     const maxSize = 5 * 1024 * 1024; // 5MB
     
     return allowedTypes.includes(file.type) && file.size <= maxSize;
+  };
+
+  const validateSeatingCapacity = (capacity) => {
+    const capacityNum = parseInt(capacity);
+    return !isNaN(capacityNum) && capacityNum >= 1 && capacityNum <= 50;
   };
 
   // Image handling
@@ -152,6 +160,19 @@ const VehicleRegister = () => {
     }
   };
 
+  const handleSeatingCapacityChange = (e) => {
+    const value = e.target.value;
+    setSeatingCapacity(value);
+    
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, seatingCapacity: "Seating capacity is required" }));
+    } else if (!validateSeatingCapacity(value)) {
+      setErrors(prev => ({ ...prev, seatingCapacity: "Seating capacity must be between 1 and 50" }));
+    } else {
+      setErrors(prev => ({ ...prev, seatingCapacity: "" }));
+    }
+  };
+
   // Validation before submit
   const validateForm = () => {
     const newErrors = {};
@@ -168,6 +189,9 @@ const VehicleRegister = () => {
     else if (!validateYear(year)) newErrors.year = `Year must be between 1990 and ${new Date().getFullYear()}`;
     
     if (!fuelType) newErrors.fuelType = "Fuel type selection is required";
+    
+    if (!seatingCapacity.trim()) newErrors.seatingCapacity = "Seating capacity is required";
+    else if (!validateSeatingCapacity(seatingCapacity)) newErrors.seatingCapacity = "Seating capacity must be between 1 and 50";
     
     if (!vehicleImage) newErrors.vehicleImage = "Vehicle photo is required";
     else if (!validateImage(vehicleImage)) newErrors.vehicleImage = "Please select a valid image file (JPEG, PNG, GIF) under 5MB";
@@ -193,16 +217,17 @@ const VehicleRegister = () => {
     formData.append('vehicleNumber', vehicleNumber.trim());
     formData.append('year', parseInt(year));
     formData.append('fuelType', fuelType);
+    formData.append('seatingCapacity', parseInt(seatingCapacity));
     formData.append('vehicleImage', vehicleImage);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/vehicles', formData, {
+      await axios.post('http://localhost:8000/api/vehicles', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       alert('Vehicle registered successfully!');
-      handleReset();
+      // Form will be reset by page navigation or user action
     } catch (err) {
       console.error('Error registering vehicle:', err);
       if (err.response?.data?.message) {
@@ -213,21 +238,6 @@ const VehicleRegister = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Reset form
-  const handleReset = () => {
-    setBrandName('');
-    setModelName('');
-    setVehicleNumber('');
-    setYear('');
-    setFuelType('');
-    setVehicleImage(null);
-    setImagePreview(null);
-    setErrors({});
-    
-    const fileInput = document.getElementById('vehicleImage');
-    if (fileInput) fileInput.value = '';
   };
 
   return (
@@ -342,20 +352,38 @@ const VehicleRegister = () => {
               </div>
             </div>
 
-            {/* Fuel Type */}
-            <div style={{ marginBottom: '30px' }}>
-              <label>Fuel Type <span style={{ color: 'red' }}>*</span></label>
-              <select
-                className={`input ${errors.fuelType ? 'error-input' : ''}`}
-                value={fuelType}
-                onChange={handleFuelTypeChange}
-              >
-                <option value="">Select Fuel Type</option>
-                {fuelTypes.map(fuel => (
-                  <option key={fuel} value={fuel}>{fuel}</option>
-                ))}
-              </select>
-              {errors.fuelType && <span className="error">{errors.fuelType}</span>}
+            {/* Fuel Type & Seating Capacity */}
+            <div className="row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+              <div>
+                <label>Fuel Type <span style={{ color: 'red' }}>*</span></label>
+                <select
+                  className={`input ${errors.fuelType ? 'error-input' : ''}`}
+                  value={fuelType}
+                  onChange={handleFuelTypeChange}
+                >
+                  <option value="">Select Fuel Type</option>
+                  {fuelTypes.map(fuel => (
+                    <option key={fuel} value={fuel}>{fuel}</option>
+                  ))}
+                </select>
+                {errors.fuelType && <span className="error">{errors.fuelType}</span>}
+              </div>
+              <div>
+                <label>Seating Capacity <span style={{ color: 'red' }}>*</span></label>
+                <div className="seating-capacity-container">
+                  <input
+                    className={`input ${errors.seatingCapacity ? 'error-input' : ''}`}
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={seatingCapacity}
+                    onChange={handleSeatingCapacityChange}
+                    placeholder="Enter number of seats"
+                  />
+                </div>
+                {errors.seatingCapacity && <span className="error">{errors.seatingCapacity}</span>}
+                <small className="help-text">Enter the total number of passenger seats (1-50)</small>
+              </div>
             </div>
 
             {/* Buttons */}
@@ -363,10 +391,10 @@ const VehicleRegister = () => {
               <button 
                 type="button" 
                 className="btn1" 
-                onClick={handleReset}
+                onClick={() => navigate('/Adminpage')}
                 disabled={loading}
               >
-                Reset
+                Back to Admin
               </button>
               <button 
                 type="submit" 

@@ -85,6 +85,7 @@ router.post("/", upload.single('vehicleImage'), async (req, res) => {
       vehicleNumber: req.body.vehicleNumber.toUpperCase(),
       year: parseInt(req.body.year),
       fuelType: req.body.fuelType,
+      seatingCapacity: parseInt(req.body.seatingCapacity),
       vehicleImage: req.file ? req.file.filename : null,
       registeredAt: new Date(),
       status: "active"
@@ -100,6 +101,7 @@ router.post("/", upload.single('vehicleImage'), async (req, res) => {
       vehicleId: result.insertedId,
       vehicleData: {
         ...vehicleData,
+        _id: result.insertedId,
         vehicleImageUrl: req.file ? `/uploads/vehicles/${req.file.filename}` : null
       }
     });
@@ -388,6 +390,128 @@ router.put("/:id/status", async (req, res) => {
     res.json({ message: `Vehicle status updated to ${status}` });
   } catch (error) {
     console.error("Error updating vehicle status:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// PUT /api/vehicles/:id - Update a vehicle
+router.put("/:id", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const vehicleId = req.params.id;
+    const updateData = req.body;
+    
+    console.log('Updating vehicle with ID:', vehicleId);
+    console.log('Update data:', updateData);
+    
+    // Validate ObjectId format
+    if (!isValidObjectId(vehicleId)) {
+      console.log("Invalid vehicleId format in PUT /:id:", vehicleId);
+      return res.status(400).json({ message: "Invalid vehicle ID format" });
+    }
+    
+    // Remove any undefined or null values
+    const cleanUpdateData = Object.keys(updateData).reduce((acc, key) => {
+      if (updateData[key] !== undefined && updateData[key] !== null) {
+        acc[key] = updateData[key];
+      }
+      return acc;
+    }, {});
+    
+    // Add updatedAt timestamp
+    cleanUpdateData.updatedAt = new Date();
+    
+    console.log('Clean update data:', cleanUpdateData);
+    
+    const result = await db.collection("vehicles").updateOne(
+      { _id: new ObjectId(vehicleId) },
+      { $set: cleanUpdateData }
+    );
+    
+    console.log('Update result:', result);
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Vehicle not found" });
+    }
+    
+    // Get the updated vehicle
+    const updatedVehicle = await db.collection("vehicles").findOne({
+      _id: new ObjectId(vehicleId)
+    });
+    
+    // Add image URL if vehicle has an image
+    if (updatedVehicle && updatedVehicle.vehicleImage) {
+      updatedVehicle.vehicleImageUrl = `/uploads/vehicles/${updatedVehicle.vehicleImage}`;
+    }
+    
+    res.json({ 
+      message: "Vehicle updated successfully",
+      vehicle: updatedVehicle,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error("Error updating vehicle:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// DELETE /api/vehicles/:id - Delete a vehicle
+router.delete("/:id", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const vehicleId = req.params.id;
+    
+    console.log('Deleting vehicle with ID:', vehicleId);
+    
+    // Validate ObjectId format
+    if (!isValidObjectId(vehicleId)) {
+      console.log("Invalid vehicleId format in DELETE /:id:", vehicleId);
+      return res.status(400).json({ message: "Invalid vehicle ID format" });
+    }
+    
+    // Find vehicle first to get image filename
+    const vehicle = await db.collection("vehicles").findOne({
+      _id: new ObjectId(vehicleId)
+    });
+    
+    if (!vehicle) {
+      return res.status(404).json({ message: "Vehicle not found" });
+    }
+    
+    console.log('Found vehicle to delete:', vehicle.brandName, vehicle.modelName);
+    
+    // Delete vehicle from database
+    const result = await db.collection("vehicles").deleteOne({
+      _id: new ObjectId(vehicleId)
+    });
+    
+    console.log('Delete result:', result);
+    
+    // Delete image file if exists
+    if (vehicle.vehicleImage) {
+      const imagePath = path.join(__dirname, '../uploads/vehicles', vehicle.vehicleImage);
+      fs.unlink(imagePath, (err) => {
+        if (err) console.error('Error deleting vehicle image:', err);
+        else console.log('Vehicle image deleted successfully');
+      });
+    }
+    
+    res.json({ 
+      message: "Vehicle deleted successfully",
+      deletedCount: result.deletedCount 
+    });
+  } catch (error) {
+    console.error("Error deleting vehicle:", error);
     res.status(500).json({ error: error.message });
   } finally {
     await client.close();

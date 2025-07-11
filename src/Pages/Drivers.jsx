@@ -128,7 +128,15 @@ function Drivers() {
                   */}
                   <div className="driver-status">
                     <span className={`status-badge ${driver.status}`}>
-                      {driver.status === 'active' ? '✅ Available' : '❌ Unavailable'}
+                      {driver.status === 'active' ? (
+                        <>
+                          <i className="fa-solid fa-check-circle"></i> Available
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa-solid fa-times-circle"></i> Unavailable
+                        </>
+                      )}
                     </span>
                   </div>
                 </div>
