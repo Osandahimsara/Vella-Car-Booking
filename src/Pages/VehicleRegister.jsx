@@ -1,7 +1,7 @@
 import '../CSS/adVehicle.css';
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const vehicleBrands = [
   "Toyota", "Honda", "Nissan", "Suzuki", "Mitsubishi", "Mazda",
@@ -22,9 +22,13 @@ const VehicleRegister = () => {
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [year, setYear] = useState('');
   const [fuelType, setFuelType] = useState('');
-  const [seatingCapacity, setSeatingCapacity] = useState('');
+  const [seatCount, setSeatCount] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Validation functions
   const validateVehicleNumber = (number) => {
@@ -51,11 +55,6 @@ const VehicleRegister = () => {
     const maxSize = 5 * 1024 * 1024; // 5MB
     
     return allowedTypes.includes(file.type) && file.size <= maxSize;
-  };
-
-  const validateSeatingCapacity = (capacity) => {
-    const capacityNum = parseInt(capacity);
-    return !isNaN(capacityNum) && capacityNum >= 1 && capacityNum <= 50;
   };
 
   // Image handling
@@ -160,16 +159,19 @@ const VehicleRegister = () => {
     }
   };
 
-  const handleSeatingCapacityChange = (e) => {
+  const handleSeatCountChange = (e) => {
     const value = e.target.value;
-    setSeatingCapacity(value);
+    setSeatCount(value);
     
     if (!value.trim()) {
-      setErrors(prev => ({ ...prev, seatingCapacity: "Seating capacity is required" }));
-    } else if (!validateSeatingCapacity(value)) {
-      setErrors(prev => ({ ...prev, seatingCapacity: "Seating capacity must be between 1 and 50" }));
+      setErrors(prev => ({ ...prev, seatCount: "Seat count is required" }));
     } else {
-      setErrors(prev => ({ ...prev, seatingCapacity: "" }));
+      const seatNum = parseInt(value);
+      if (isNaN(seatNum) || seatNum < 1 || seatNum > 50) {
+        setErrors(prev => ({ ...prev, seatCount: "Seat count must be between 1 and 50" }));
+      } else {
+        setErrors(prev => ({ ...prev, seatCount: "" }));
+      }
     }
   };
 
@@ -188,10 +190,15 @@ const VehicleRegister = () => {
     if (!year.trim()) newErrors.year = "Year is required";
     else if (!validateYear(year)) newErrors.year = `Year must be between 1990 and ${new Date().getFullYear()}`;
     
-    if (!fuelType) newErrors.fuelType = "Fuel type selection is required";
+    if (!seatCount.trim()) newErrors.seatCount = "Seat count is required";
+    else {
+      const seatNum = parseInt(seatCount);
+      if (isNaN(seatNum) || seatNum < 1 || seatNum > 50) {
+        newErrors.seatCount = "Seat count must be between 1 and 50";
+      }
+    }
     
-    if (!seatingCapacity.trim()) newErrors.seatingCapacity = "Seating capacity is required";
-    else if (!validateSeatingCapacity(seatingCapacity)) newErrors.seatingCapacity = "Seating capacity must be between 1 and 50";
+    if (!fuelType) newErrors.fuelType = "Fuel type selection is required";
     
     if (!vehicleImage) newErrors.vehicleImage = "Vehicle photo is required";
     else if (!validateImage(vehicleImage)) newErrors.vehicleImage = "Please select a valid image file (JPEG, PNG, GIF) under 5MB";
@@ -216,8 +223,8 @@ const VehicleRegister = () => {
     formData.append('modelName', modelName.trim());
     formData.append('vehicleNumber', vehicleNumber.trim());
     formData.append('year', parseInt(year));
+    formData.append('seatingCapacity', parseInt(seatCount));
     formData.append('fuelType', fuelType);
-    formData.append('seatingCapacity', parseInt(seatingCapacity));
     formData.append('vehicleImage', vehicleImage);
 
     try {
@@ -226,18 +233,35 @@ const VehicleRegister = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert('Vehicle registered successfully!');
-      // Form will be reset by page navigation or user action
+      setShowSuccessModal(true);
+      handleReset();
     } catch (err) {
       console.error('Error registering vehicle:', err);
       if (err.response?.data?.message) {
-        alert(`Error: ${err.response.data.message}`);
+        setErrorMessage(err.response.data.message);
       } else {
-        alert('Error registering vehicle. Please try again.');
+        setErrorMessage('Error registering vehicle. Please try again.');
       }
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Reset form
+  const handleReset = () => {
+    setBrandName('');
+    setModelName('');
+    setVehicleNumber('');
+    setYear('');
+    setSeatCount('');
+    setFuelType('');
+    setVehicleImage(null);
+    setImagePreview(null);
+    setErrors({});
+    
+    const fileInput = document.getElementById('vehicleImage');
+    if (fileInput) fileInput.value = '';
   };
 
   return (
@@ -352,8 +376,21 @@ const VehicleRegister = () => {
               </div>
             </div>
 
-            {/* Fuel Type & Seating Capacity */}
-            <div className="row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+            {/* Seat Count & Fuel Type */}
+            <div className="row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+              <div>
+                <label>Seat Count <span style={{ color: 'red' }}>*</span></label>
+                <input
+                  className={`input ${errors.seatCount ? 'error-input' : ''}`}
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={seatCount}
+                  onChange={handleSeatCountChange}
+                  placeholder="Enter seat count"
+                />
+                {errors.seatCount && <span className="error">{errors.seatCount}</span>}
+              </div>
               <div>
                 <label>Fuel Type <span style={{ color: 'red' }}>*</span></label>
                 <select
@@ -368,26 +405,10 @@ const VehicleRegister = () => {
                 </select>
                 {errors.fuelType && <span className="error">{errors.fuelType}</span>}
               </div>
-              <div>
-                <label>Seating Capacity <span style={{ color: 'red' }}>*</span></label>
-                <div className="seating-capacity-container">
-                  <input
-                    className={`input ${errors.seatingCapacity ? 'error-input' : ''}`}
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={seatingCapacity}
-                    onChange={handleSeatingCapacityChange}
-                    placeholder="Enter number of seats"
-                  />
-                </div>
-                {errors.seatingCapacity && <span className="error">{errors.seatingCapacity}</span>}
-                <small className="help-text">Enter the total number of passenger seats (1-50)</small>
-              </div>
             </div>
 
             {/* Buttons */}
-            <div className="button-group">
+           <div className="button-group">
               <button 
                 type="button" 
                 className="btn1" 
@@ -407,6 +428,177 @@ const VehicleRegister = () => {
           </form>
         </fieldset>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#28a745',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✓
+            </div>
+            <h2 style={{
+              color: '#28a745',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Success!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              Vehicle has been registered successfully!
+            </p>
+            <button
+              onClick={() => {
+                setShowSuccessModal(false);
+                navigate('/AdminVehicles');
+              }}
+              style={{
+                backgroundColor: '#fa4226',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#e63946'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#fa4226'}
+            >
+              View Vehicles
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#dc3545',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✕
+            </div>
+            <h2 style={{
+              color: '#dc3545',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Error!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              {errorMessage}
+            </p>
+            <button
+              onClick={() => {
+                setShowErrorModal(false);
+                setErrorMessage('');
+              }}
+              style={{
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };

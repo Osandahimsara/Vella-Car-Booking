@@ -11,6 +11,11 @@ const AdminVehicles = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
 
   // Fetch vehicles on component mount
   useEffect(() => {
@@ -59,7 +64,7 @@ const AdminVehicles = () => {
       setVehicleToDelete(null);
       
       // Show success message
-      alert('Vehicle deleted successfully!');
+      setShowDeleteSuccessModal(true);
       
       // Refresh the vehicles list
       await fetchVehicles();
@@ -67,10 +72,11 @@ const AdminVehicles = () => {
       console.error('Error deleting vehicle:', err);
       
       if (err.response?.status === 404) {
-        alert('Vehicle not found. It may have already been deleted.');
+        setErrorMessage('Vehicle not found. It may have already been deleted.');
       } else {
-        alert(`Error deleting vehicle: ${err.response?.data?.message || err.message}`);
+        setErrorMessage(`Error deleting vehicle: ${err.response?.data?.message || err.message}`);
       }
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -98,10 +104,12 @@ const AdminVehicles = () => {
         )
       );
       
-      alert(`Vehicle status updated to ${newStatus}!`);
+      setStatusMessage(`Vehicle status updated to ${newStatus}!`);
+      setShowStatusModal(true);
     } catch (err) {
       console.error('Error updating vehicle status:', err);
-      alert('Error updating vehicle status. Please try again.');
+      setErrorMessage('Error updating vehicle status. Please try again.');
+      setShowErrorModal(true);
       
       // Refresh the list to restore the original state
       fetchVehicles();
@@ -1044,6 +1052,242 @@ const AdminVehicles = () => {
                 {loading ? 'Deleting...' : 'Delete Vehicle'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Success Modal */}
+      {showStatusModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#28a745',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✓
+            </div>
+            <h2 style={{
+              color: '#28a745',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Success!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              {statusMessage}
+            </p>
+            <button
+              onClick={() => {
+                setShowStatusModal(false);
+                setStatusMessage('');
+              }}
+              style={{
+                backgroundColor: '#fa4226',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#e63946'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#fa4226'}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Success Modal */}
+      {showDeleteSuccessModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#28a745',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✓
+            </div>
+            <h2 style={{
+              color: '#28a745',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Deleted!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              Vehicle has been deleted successfully!
+            </p>
+            <button
+              onClick={() => {
+                setShowDeleteSuccessModal(false);
+              }}
+              style={{
+                backgroundColor: '#fa4226',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#e63946'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#fa4226'}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#dc3545',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✕
+            </div>
+            <h2 style={{
+              color: '#dc3545',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Error!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              {errorMessage}
+            </p>
+            <button
+              onClick={() => {
+                setShowErrorModal(false);
+                setErrorMessage('');
+              }}
+              style={{
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+            >
+              Try Again
+            </button>
           </div>
         </div>
       )}
