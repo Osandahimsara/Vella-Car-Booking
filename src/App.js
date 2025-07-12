@@ -10,6 +10,7 @@ import BookCar from "./Pages/BookCar";
 import DriverRegister from "./Pages/DriverRegister";
 import VehicleRegister from "./Pages/VehicleRegister";
 import Vehicles from "./Pages/Vehicles";
+import BookingApproval from "./Pages/BookingApproval";
 
 
 
@@ -20,7 +21,8 @@ function App() {
                     location.pathname === "/AdminVehicles" ||
                     location.pathname === "/AdminDrivers" ||
                     location.pathname === "/DriverRegister" ||
-                    location.pathname === "/VehicleRegister";
+                    location.pathname === "/VehicleRegister" ||
+                    location.pathname === "/BookingApproval";
   
 
   return (
@@ -37,6 +39,7 @@ function App() {
         <Route path="DriverRegister" element={<DriverRegister />} />
         <Route path="VehicleRegister" element={<VehicleRegister />} /> 
         <Route path="vehicles" element={<Vehicles />} /> 
+        <Route path="BookingApproval" element={<BookingApproval />} /> 
        
       </Routes>
     </>

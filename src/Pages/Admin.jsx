@@ -97,7 +97,7 @@ const AdminPage = () => {
       // Fetch bookings data
       let bookings = [];
       try {
-        const bookingsRes = await axios.get('http://localhost:8000/api/booking');
+        const bookingsRes = await axios.get('http://localhost:8000/api/bookings');
         bookings = bookingsRes.data || [];
         console.log('✅ Bookings fetched:', bookings.length, 'total');
       } catch (bookingError) {
@@ -112,7 +112,7 @@ const AdminPage = () => {
       const activeVehicleCount = vehicles.filter(v => v.status === 'available' || v.status === 'active').length;
       const activeDriverCount = drivers.filter(d => d.status === 'active').length;
       const pendingBookingCount = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length;
-      const completedBookingCount = bookings.filter(b => b.status === 'completed').length;
+      const completedBookingCount = bookings.filter(b => b.status === 'completed' || b.status === 'approved').length;
       
       // Update state with real data
       setTotalVehicles(totalVehicleCount);
@@ -197,7 +197,8 @@ const cards = [
       color: "#FF8C00",
       icon: <i className="fas fa-clock"></i>,
       image: pendingBookingsImg, 
-      trend: pendingBookings > 5 ? "High volume" : "Normal"
+      trend: pendingBookings > 5 ? "High volume" : "Normal",
+      link: "/BookingApproval"
     },
     {
       count: totalBookings,
@@ -286,7 +287,7 @@ const cards = [
             { icon: "fas fa-car", label: "Add Vehicle", path: "/VehicleRegister" },
             { icon: "fas fa-car-side", label: "Manage Vehicles", path: "/vehicles" },
             { icon: "fas fa-id-badge", label: "Manage Drivers", path: "/Drivers" },
-            { icon: "fas fa-list", label: "Bookings", path: "/pending-bookings" },
+            { icon: "fas fa-list", label: "Bookings", path: "/BookingApproval" },
             { icon: "fas fa-chart-bar", label: "Reports", path: "/reports" }
           ].map((item, idx) => (
             <div key={idx} className="nav-button" style={{
@@ -417,8 +418,7 @@ const cards = [
                   display: 'inline-block',
                   transform: 'rotate(-5deg)',
                   animation: 'float 3s ease-in-out infinite'
-                }}>
-                  
+                }}> 
                 </span>
                 <span style={{ 
                   background: 'linear-gradient(45deg, #FFD700, #FFA500)',
@@ -919,7 +919,7 @@ const cards = [
               🕐 Recent Bookings
             </h3>
             <Link 
-              to="/pending-bookings" 
+              to="/BookingApproval" 
               style={{ 
                 color: '#0078D4', 
                 textDecoration: 'none',
@@ -966,12 +966,20 @@ const cards = [
                       borderRadius: '12px',
                       fontSize: '0.8rem',
                       fontWeight: 'bold',
-                      background: booking.status === 'completed' ? '#d4edda' : 
-                                booking.status === 'pending' ? '#fff3cd' : '#f8d7da',
-                      color: booking.status === 'completed' ? '#155724' :
-                             booking.status === 'pending' ? '#856404' : '#721c24'
+                      background: booking.status === 'approved' ? '#d4edda' :
+                                booking.status === 'completed' ? '#d4edda' : 
+                                booking.status === 'confirmed' ? '#fff3cd' :
+                                booking.status === 'pending' ? '#fff3cd' :
+                                booking.status === 'rejected' ? '#f8d7da' : '#f8f9fa',
+                      color: booking.status === 'approved' ? '#155724' :
+                             booking.status === 'completed' ? '#155724' :
+                             booking.status === 'confirmed' ? '#856404' :
+                             booking.status === 'pending' ? '#856404' :
+                             booking.status === 'rejected' ? '#721c24' : '#6c757d'
                     }}>
-                      {booking.status}
+                      {booking.status === 'confirmed' ? 'Pending' : 
+                       booking.status === 'approved' ? 'Approved' :
+                       booking.status}
                     </span>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const Booking = require("../models/Booking");
 const nodemailer = require("nodemailer");
 const path = require('path');
@@ -257,6 +257,291 @@ console.log("========================");
   } catch (error) {
     console.log(error); 
     res.status(500).json({ error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// GET /api/bookings - Get all bookings
+router.get("/", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const bookings = await db.collection("bookings").find({}).sort({ createdAt: -1 }).toArray();
+    
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ message: "Error fetching bookings" });
+  } finally {
+    await client.close();
+  }
+});
+
+// PUT /api/bookings/:id/approve - Approve a booking
+router.put("/:id/approve", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const bookingId = req.params.id;
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: "Invalid booking ID format" });
+    }
+    
+    // Find the booking
+    const booking = await db.collection("bookings").findOne({
+      _id: new ObjectId(bookingId)
+    });
+    
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    
+    // Update booking status to approved
+    const result = await db.collection("bookings").updateOne(
+      { _id: new ObjectId(bookingId) },
+      { 
+        $set: { 
+          status: "approved",
+          approvedAt: new Date(),
+          updatedAt: new Date()
+        } 
+      }
+    );
+    
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ message: "Booking could not be approved" });
+    }
+    
+    // Send approval email to customer
+    const approvalEmailOptions = {
+      from: `"Vella Car Booking" <${process.env.EMAIL_USER}>`,
+      to: booking.email,
+      subject: `🎉 Booking Approved - ${booking.bookingId}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <img src="cid:carimage" alt="Car" width="150" />
+            <h1 style="color: #28a745; margin-top: 20px;"> Booking Approved!</h1>
+          </div>
+          
+          <div style="background: #d4edda; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #28a745;">
+            <h2 style="color: #155724; text-align: center; margin: 0;">Great News, ${booking.name}!</h2>
+            <p style="text-align: center; font-size: 16px; color: #155724; margin: 10px 0 0 0;">
+              Your car booking has been approved and confirmed!
+            </p>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <tr style="background: #28a745; color: white;">
+              <td colspan="2" style="padding: 15px; text-align: center; font-size: 18px; font-weight: bold;">
+                ✅ Approved Booking Details
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Booking ID:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; color: #28a745; font-weight: bold;">${booking.bookingId}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Customer Name:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.name} ${booking.lastName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Car Type:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.carType}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Pick-Up Location:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.pickUp}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Drop-Off Location:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.dropOff}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Pick-Up Date & Time:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.pickTime} ${booking.pickUpTime || ''}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Drop-Off Date & Time:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.dropTime} ${booking.dropOffTime || ''}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Driver Required:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.driver}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; font-weight: bold; background: #f8f9fa;">Contact Phone:</td>
+              <td style="padding: 12px;">${booking.phone}</td>
+            </tr>
+          </table>
+
+          <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border-left: 5px solid #17a2b8;">
+            <h3 style="color: #0c5460; margin: 0 0 10px 0;">🚗 What's Next?</h3>
+            <p style="margin: 0; color: #0c5460;">
+              Your booking is now confirmed! We'll contact you shortly with final details.
+              Please have your booking ID ready: <strong>${booking.bookingId}</strong>
+            </p>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+            <p style="margin: 0; color: #666;">
+              Thank you for choosing Vella Car Booking! <br>
+              <strong>We look forward to serving you!</strong>
+            </p>
+          </div>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: path.join(__dirname, '../../src/images/logo/logo.png'),
+          cid: 'carimage'
+        }
+      ]
+    };
+
+    await transporter.sendMail(approvalEmailOptions);
+    
+    res.status(200).json({ 
+      message: "Booking approved successfully",
+      booking: {
+        ...booking,
+        status: "approved",
+        approvedAt: new Date()
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error approving booking:", error);
+    res.status(500).json({ message: "Error approving booking", error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// PUT /api/bookings/:id/reject - Reject a booking
+router.put("/:id/reject", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const bookingId = req.params.id;
+    const { reason } = req.body;
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: "Invalid booking ID format" });
+    }
+    
+    // Find the booking
+    const booking = await db.collection("bookings").findOne({
+      _id: new ObjectId(bookingId)
+    });
+    
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    
+    // Update booking status to rejected
+    const result = await db.collection("bookings").updateOne(
+      { _id: new ObjectId(bookingId) },
+      { 
+        $set: { 
+          status: "rejected",
+          rejectedAt: new Date(),
+          rejectionReason: reason || "No reason provided",
+          updatedAt: new Date()
+        } 
+      }
+    );
+    
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ message: "Booking could not be rejected" });
+    }
+    
+    // Send rejection email to customer
+    const rejectionEmailOptions = {
+      from: `"Vella Car Booking" <${process.env.EMAIL_USER}>`,
+      to: booking.email,
+      subject: `Booking Update - ${booking.bookingId}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <img src="cid:carimage" alt="Car" width="150" />
+            <h1 style="color: #dc3545; margin-top: 20px;">Booking Update</h1>
+          </div>
+          
+          <div style="background: #f8d7da; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #dc3545;">
+            <h2 style="color: #721c24; text-align: center; margin: 0;">Dear ${booking.name},</h2>
+            <p style="text-align: center; font-size: 16px; color: #721c24; margin: 10px 0 0 0;">
+              We regret to inform you that your booking request could not be accommodated at this time.
+            </p>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <tr style="background: #dc3545; color: white;">
+              <td colspan="2" style="padding: 15px; text-align: center; font-size: 18px; font-weight: bold;">
+                Booking Details
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Booking ID:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; color: #dc3545; font-weight: bold;">${booking.bookingId}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Reason:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${reason || "Vehicle/driver unavailable for selected dates"}</td>
+            </tr>
+          </table>
+
+          <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border-left: 5px solid #17a2b8;">
+            <h3 style="color: #0c5460; margin: 0 0 10px 0;">Alternative Options</h3>
+            <p style="margin: 0; color: #0c5460;">
+              Please contact us to discuss alternative dates or vehicle options.
+              We're here to help find the best solution for your transportation needs.
+            </p>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+            <p style="margin: 0; color: #666;">
+              Thank you for considering Vella Car Booking.<br>
+              <strong>We hope to serve you in the future!</strong>
+            </p>
+          </div>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: path.join(__dirname, '../../src/images/logo/logo.png'),
+          cid: 'carimage'
+        }
+      ]
+    };
+
+    await transporter.sendMail(rejectionEmailOptions);
+    
+    res.status(200).json({ 
+      message: "Booking rejected successfully",
+      booking: {
+        ...booking,
+        status: "rejected",
+        rejectedAt: new Date(),
+        rejectionReason: reason || "No reason provided"
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error rejecting booking:", error);
+    res.status(500).json({ message: "Error rejecting booking", error: error.message });
   } finally {
     await client.close();
   }

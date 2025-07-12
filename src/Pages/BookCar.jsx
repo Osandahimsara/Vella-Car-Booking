@@ -468,14 +468,66 @@ function BookCar() {
   };
 
   // Handle booking inputs
-  const handlePick = (e) => setPickUp(e.target.value);
-  const handleDrop = (e) => setDropOff(e.target.value);
-  const handlePickTime = (e) => setPickTime(e.target.value);
-  const handleDropTime = (e) => setDropTime(e.target.value);
+  const handlePick = (e) => {
+    const value = e.target.value;
+    setPickUp(value);
+    console.log("Pick-up selected:", value);
+  };
+  
+  const handleDrop = (e) => {
+    const value = e.target.value;
+    setDropOff(value);
+    console.log("Drop-off selected:", value);
+  };
+  
+  const handlePickTime = (e) => {
+    const selectedDate = e.target.value;
+    setPickTime(selectedDate);
+    console.log("Pick-up date selected:", selectedDate);
+    
+    // Fetch available drivers when dates change
+    if (selectedDate && dropTime) {
+      fetchAvailableDrivers();
+    }
+  };
+  
+  const handleDropTime = (e) => {
+    const selectedDate = e.target.value;
+    setDropTime(selectedDate);
+    console.log("Drop-off date selected:", selectedDate);
+    
+    // Fetch available drivers when dates change
+    if (pickTime && selectedDate) {
+      fetchAvailableDrivers();
+    }
+  };
+
+  const handlePickUpTimeChange = (e) => {
+    const time = e.target.value;
+    setPickUpTime(time);
+    console.log("Pick-up time selected:", time);
+    
+    // Re-fetch drivers if both dates and times are set
+    if (pickTime && dropTime && time && dropOffTime) {
+      fetchAvailableDrivers();
+    }
+  };
+
+  const handleDropOffTimeChange = (e) => {
+    const time = e.target.value;
+    setDropOffTime(time);
+    console.log("Drop-off time selected:", time);
+    
+    // Re-fetch drivers if both dates and times are set
+    if (pickTime && dropTime && pickUpTime && time) {
+      fetchAvailableDrivers();
+    }
+  };
 
   // Handle vehicle selection with availability check
   const handleVehicleSelect = (e) => {
     const vehicleId = e.target.value;
+    console.log("Vehicle selection changed:", vehicleId);
     
     if (vehicleId) {
       const vehicle = availableVehicles.find(v => v._id === vehicleId);
@@ -498,7 +550,7 @@ function BookCar() {
     }
   };
 
-  // FIXED: Handle driver selection with availability check
+  // Handle driver selection with availability check
   const handleDriver = (e) => {
     const driverName = e.target.value;
     console.log('👨‍💼 Driver selected:', driverName);
@@ -558,10 +610,12 @@ function BookCar() {
     <>       
       <section id="booking-section" className="book-section">
         {/* Overlay */}
-        <div
-          onClick={() => setModal(false)}
-          className={`modal-overlay ${modal ? "active-modal" : ""}`}
-        ></div>
+        {modal && (
+          <div
+            onClick={() => setModal(false)}
+            className="modal-overlay active-modal"
+          ></div>
+        )}
 
         <div className="container">
           <div className="book-content">
@@ -577,13 +631,47 @@ function BookCar() {
                 <i onClick={hideMessage} className="fa-solid fa-xmark"></i>
               </p>
 
-              <form className="box-form">
+              <form className="box-form" onSubmit={(e) => e.preventDefault()} style={{ position: 'relative', zIndex: '10' }}>
+                {/* Debug info */}
+                <div style={{ 
+                  position: 'fixed', 
+                  top: '10px', 
+                  right: '10px', 
+                  background: 'rgba(0,0,0,0.8)', 
+                  color: 'white', 
+                  padding: '10px', 
+                  borderRadius: '5px',
+                  fontSize: '12px',
+                  zIndex: '9999'
+                }}>
+                  Form Active: {!modal ? 'YES' : 'NO'}<br/>
+                  Modal Open: {modal ? 'YES' : 'NO'}
+                </div>
                 {/* Dynamic Vehicle Selection with Availability */}
                 <div className="box-form__car-type">
                   <label>
                     <i className="fa-solid fa-car"></i> &nbsp; Select Vehicle <b>*</b>
                   </label>
-                  <select value={selectedVehicle?._id || ""} onChange={handleVehicleSelect} disabled={vehicleLoading}>
+                  <select 
+                    value={selectedVehicle?._id || ""} 
+                    onChange={handleVehicleSelect} 
+                    disabled={vehicleLoading}
+                    style={{ 
+                      fontSize: '1.5rem',
+                      color: '#ababab',
+                      fontFamily: '"Rubik", sans-serif',
+                      border: '1px solid #ccd7e6',
+                      borderRadius: '3px',
+                      fontWeight: '400',
+                      padding: '1.2rem 1.3rem',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Vehicle select focused')}
+                    onClick={() => console.log('Vehicle select clicked')}
+                  >
                     <option value="">
                       {vehicleLoading ? "Loading vehicles..." : "Select your vehicle"}
                     </option>
@@ -627,7 +715,25 @@ function BookCar() {
                   <label>
                     <i className="fa-solid fa-location-dot"></i> &nbsp; Pick-up <b>*</b>
                   </label>
-                  <select value={pickUp} onChange={handlePick}>
+                  <select 
+                    value={pickUp} 
+                    onChange={handlePick}
+                    style={{ 
+                      fontSize: '1.5rem',
+                      color: '#ababab',
+                      fontFamily: '"Rubik", sans-serif',
+                      border: '1px solid #ccd7e6',
+                      borderRadius: '3px',
+                      fontWeight: '400',
+                      padding: '1.2rem 1.3rem',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Pick-up select focused')}
+                    onClick={() => console.log('Pick-up select clicked')}
+                  >
                     <option value="">Select pick up location</option>
                     {cities.map((city, index) => (
                       <option 
@@ -651,7 +757,25 @@ function BookCar() {
                   <label>
                     <i className="fa-solid fa-location-dot"></i> &nbsp; Drop-off <b>*</b>
                   </label>
-                  <select value={dropOff} onChange={handleDrop}>
+                  <select 
+                    value={dropOff} 
+                    onChange={handleDrop}
+                    style={{ 
+                      fontSize: '1.5rem',
+                      color: '#ababab',
+                      fontFamily: '"Rubik", sans-serif',
+                      border: '1px solid #ccd7e6',
+                      borderRadius: '3px',
+                      fontWeight: '400',
+                      padding: '1.2rem 1.3rem',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Drop-off select focused')}
+                    onClick={() => console.log('Drop-off select clicked')}
+                  >
                     <option value="">Select drop off location</option>
                     {cities.map((city, index) => (
                       <option 
@@ -680,6 +804,18 @@ function BookCar() {
                     value={pickTime}
                     onChange={handlePickTime}
                     type="date"
+                    style={{
+                      outline: 'none',
+                      color: '#878585',
+                      border: '1px solid #ccd7e6',
+                      padding: '1.2rem 1.3rem',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Pick-up date focused')}
+                    onClick={() => console.log('Pick-up date clicked')}
                   ></input>
                 </div>
 
@@ -693,8 +829,20 @@ function BookCar() {
                     type="time"
                     id="pickUpTime"
                     value={pickUpTime}
-                    onChange={(e) => setPickUpTime(e.target.value)}
+                    onChange={handlePickUpTimeChange}
                     required
+                    style={{
+                      outline: 'none',
+                      color: '#878585',
+                      border: '1px solid #ccd7e6',
+                      padding: '1.2rem 1.3rem',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Pick-up time focused')}
+                    onClick={() => console.log('Pick-up time clicked')}
                   />
                 </div>
 
@@ -708,6 +856,18 @@ function BookCar() {
                     value={dropTime}
                     onChange={handleDropTime}
                     type="date"
+                    style={{
+                      outline: 'none',
+                      color: '#878585',
+                      border: '1px solid #ccd7e6',
+                      padding: '1.2rem 1.3rem',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Drop-off date focused')}
+                    onClick={() => console.log('Drop-off date clicked')}
                   ></input>
                 </div>
 
@@ -721,8 +881,20 @@ function BookCar() {
                     type="time"
                     id="dropOffTime"
                     value={dropOffTime}
-                    onChange={(e) => setDropOffTime(e.target.value)}
+                    onChange={handleDropOffTimeChange}
                     required
+                    style={{
+                      outline: 'none',
+                      color: '#878585',
+                      border: '1px solid #ccd7e6',
+                      padding: '1.2rem 1.3rem',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Drop-off time focused')}
+                    onClick={() => console.log('Drop-off time clicked')}
                   />
                 </div>
 
@@ -731,7 +903,26 @@ function BookCar() {
                   <label>
                     <i className="fa-solid fa-user"></i> &nbsp; Select Driver <b>*</b>
                   </label>
-                  <select value={driver} onChange={handleDriver} disabled={driverLoading}>
+                  <select 
+                    value={driver} 
+                    onChange={handleDriver} 
+                    disabled={driverLoading}
+                    style={{ 
+                      fontSize: '1.5rem',
+                      color: '#ababab',
+                      fontFamily: '"Rubik", sans-serif',
+                      border: '1px solid #ccd7e6',
+                      borderRadius: '3px',
+                      fontWeight: '400',
+                      padding: '1.2rem 1.3rem',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: '1'
+                    }}
+                    onFocus={() => console.log('Driver select focused')}
+                    onClick={() => console.log('Driver select clicked')}
+                  >
                     <option value="">
                       {driverLoading ? "Loading drivers..." :
                        !pickTime || !dropTime ? "Please select dates first" : 
