@@ -22,6 +22,7 @@ const AdminPage = () => {
   const [activeVehicles, setActiveVehicles] = useState(0);
   const [activeDrivers, setActiveDrivers] = useState(0);
   const [completedBookings, setCompletedBookings] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [revenue, setRevenue] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);

@@ -111,8 +111,17 @@
 
 
 .drivers-page {
-  padding: 2rem 0;
-  min-height: 80vh;
+  padding: 100px 0 0 0;
+  min-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.drivers-page > .container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .drivers-header {
@@ -135,8 +144,13 @@
 
 /* Loading States */
 .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
   text-align: center;
-  padding: 4rem 0;
+  flex: 1;
 }
 
 .loading-spinner {
@@ -161,8 +175,20 @@
 
 /* Error States */
 .error-container, .no-drivers-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
   text-align: center;
-  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 40px;
+  margin: 20px auto;
+  max-width: 600px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  flex: 1;
 }
 
 .error-container h2, .no-drivers-container h2 {

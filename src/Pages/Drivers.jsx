@@ -37,8 +37,8 @@ function Drivers() {
               <p>Loading our drivers...</p>
             </div>
           </div>
-          <Footer />
         </section>
+        <Footer />
       </>
     );
   }
@@ -59,8 +59,8 @@ function Drivers() {
               </button>
             </div>
           </div>
-          <Footer />
         </section>
+        <Footer />
       </>
     );
   }
@@ -76,8 +76,8 @@ function Drivers() {
               <p>Please check back soon!</p>
             </div>
           </div>
-          <Footer />
         </section>
+        <Footer />
       </>
     );
   }

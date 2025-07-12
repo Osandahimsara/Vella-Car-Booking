@@ -74,6 +74,7 @@ function BookCar() {
       setVehicleAvailabilityMessage("");
       setDriverAvailabilityMessage("");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickTime, dropTime, pickUpTime, dropOffTime]);
 
   // Check vehicle availability for selected dates
@@ -632,21 +633,6 @@ function BookCar() {
               </p>
 
               <form className="box-form" onSubmit={(e) => e.preventDefault()} style={{ position: 'relative', zIndex: '10' }}>
-                {/* Debug info */}
-                <div style={{ 
-                  position: 'fixed', 
-                  top: '10px', 
-                  right: '10px', 
-                  background: 'rgba(0,0,0,0.8)', 
-                  color: 'white', 
-                  padding: '10px', 
-                  borderRadius: '5px',
-                  fontSize: '12px',
-                  zIndex: '9999'
-                }}>
-                  Form Active: {!modal ? 'YES' : 'NO'}<br/>
-                  Modal Open: {modal ? 'YES' : 'NO'}
-                </div>
                 {/* Dynamic Vehicle Selection with Availability */}
                 <div className="box-form__car-type">
                   <label>

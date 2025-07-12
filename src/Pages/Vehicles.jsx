@@ -37,8 +37,8 @@ function Vehicles() {
               <p>Loading our vehicles...</p>
             </div>
           </div>
-          <Footer />
         </section>
+        <Footer />
       </>
     );
   }
@@ -59,8 +59,8 @@ function Vehicles() {
               </button>
             </div>
           </div>
-          <Footer />
         </section>
+        <Footer />
       </>
     );
   }
@@ -76,8 +76,8 @@ function Vehicles() {
               <p>Please check back soon!</p>
             </div>
           </div>
-          <Footer />
         </section>
+        <Footer />
       </>
     );
   }

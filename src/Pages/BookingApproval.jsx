@@ -68,6 +68,7 @@ const BookingApproval = () => {
     
     try {
       setActionLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const response = await axios.put(`http://localhost:8000/api/bookings/${selectedBooking._id}/approve`);
       
       // Update the booking in the local state
@@ -97,6 +98,7 @@ const BookingApproval = () => {
     
     try {
       setActionLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const response = await axios.put(`http://localhost:8000/api/bookings/${selectedBooking._id}/reject`, {
         reason: rejectionReason || 'Vehicle/driver unavailable for selected dates'
       });

@@ -11,6 +11,7 @@ import DriverRegister from "./Pages/DriverRegister";
 import VehicleRegister from "./Pages/VehicleRegister";
 import Vehicles from "./Pages/Vehicles";
 import BookingApproval from "./Pages/BookingApproval";
+import "./CSS/global.css";
 
 
 
@@ -26,23 +27,24 @@ function App() {
   
 
   return (
-    <>
+    <div className="app-wrapper">
       {!hideNavbar && <Navbar />}
-      <Routes>
-        <Route index path="/" element={<Home />} />
-        <Route path="Drivers" element={<Drivers />} />
-        <Route path="login" element={<Login />} />
-        <Route path="Adminpage" element={<AdminPage />} />
-        <Route path="AdminVehicles" element={<AdminVehicles />} />
-        <Route path="AdminDrivers" element={<AdminDrivers />} />
-        <Route path="bookcar" element={<BookCar />} />
-        <Route path="DriverRegister" element={<DriverRegister />} />
-        <Route path="VehicleRegister" element={<VehicleRegister />} /> 
-        <Route path="vehicles" element={<Vehicles />} /> 
-        <Route path="BookingApproval" element={<BookingApproval />} /> 
-       
-      </Routes>
-    </>
+      <main className="main-content">
+        <Routes>
+          <Route index path="/" element={<Home />} />
+          <Route path="Drivers" element={<Drivers />} />
+          <Route path="login" element={<Login />} />
+          <Route path="Adminpage" element={<AdminPage />} />
+          <Route path="AdminVehicles" element={<AdminVehicles />} />
+          <Route path="AdminDrivers" element={<AdminDrivers />} />
+          <Route path="bookcar" element={<BookCar />} />
+          <Route path="DriverRegister" element={<DriverRegister />} />
+          <Route path="VehicleRegister" element={<VehicleRegister />} /> 
+          <Route path="vehicles" element={<Vehicles />} /> 
+          <Route path="BookingApproval" element={<BookingApproval />} /> 
+        </Routes>
+      </main>
+    </div>
   );
 }
 

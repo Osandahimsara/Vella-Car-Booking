@@ -1,8 +1,11 @@
 .vehicles-page {
-  padding: 100px 0 50px 0;
+  padding: 100px 0 0 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+  min-height: calc(100vh - 100px);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .vehicles-page::before {
@@ -12,13 +15,35 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgb(255, 255, 255);
+  z-index: 0;
+}
+
+.vehicles-page > .container {
+  position: relative;
   z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Loading States */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  text-align: center;
+  flex: 1;
 }
 
 .vehicles-page > .container {
   position: relative;
   z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .vehicles-header {
@@ -48,7 +73,7 @@
   gap: 35px;
   padding: 0 20px;
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 0 auto 60px auto;
 }
 
 .vehicle-card {
@@ -342,31 +367,55 @@
 }
 
 /* Loading and Error States */
-.loading-container,
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  text-align: center;
+  flex: 1;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Override container padding for loading state */
+.vehicles-page .loading-container .container,
+.vehicles-page .container:has(.loading-container) {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
 .error-container,
 .no-vehicles-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 500px;
   text-align: center;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
   padding: 40px;
-  margin: 20px;
+  margin: 20px auto;
+  max-width: 600px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  flex: 1;
 }
 
 .loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #fa4226;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #ff4d30;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 25px;
+  margin: 0 auto 1rem auto;
 }
 
 @keyframes spin {
@@ -375,9 +424,8 @@
 }
 
 .loading-container p {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #666;
-  font-weight: 500;
 }
 
 .error-container h2,
