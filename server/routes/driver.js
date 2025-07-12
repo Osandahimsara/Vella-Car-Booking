@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -82,7 +82,11 @@ router.post("/", upload.single('driverImage'), async (req, res) => {
     const driverData = {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
+      contact: req.body.contact,
       age: parseInt(req.body.age),
+      NIC: req.body.NIC,
+      DLicenceNo: req.body.DLicenceNo,
+      Address: req.body.Address,
       companyName: req.body.companyName,
       driverImage: req.file ? req.file.filename : null,
       registeredAt: new Date(),
@@ -130,19 +134,18 @@ router.delete("/:id", async (req, res) => {
     const db = client.db("Car_Booking");
     
     const driverId = req.params.id;
-    
-    // Find driver first to get image filename
+     // Find driver first to get image filename
     const driver = await db.collection("drivers").findOne({
-      _id: new require("mongodb").ObjectId(driverId)
+      _id: new ObjectId(driverId)
     });
-    
+
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
-    
+
     // Delete driver from database
     const result = await db.collection("drivers").deleteOne({
-      _id: new require("mongodb").ObjectId(driverId)
+      _id: new ObjectId(driverId)
     });
     
     // Delete image file if exists
@@ -189,7 +192,7 @@ router.put("/:id", async (req, res) => {
     console.log('Clean update data:', cleanUpdateData);
     
     const result = await db.collection("drivers").updateOne(
-      { _id: new require("mongodb").ObjectId(driverId) },
+      { _id: new ObjectId(driverId) },
       { $set: cleanUpdateData }
     );
     
@@ -201,7 +204,7 @@ router.put("/:id", async (req, res) => {
     
     // Get the updated driver
     const updatedDriver = await db.collection("drivers").findOne({
-      _id: new require("mongodb").ObjectId(driverId)
+      _id: new ObjectId(driverId)
     });
     
     // Add image URL if driver has an image
@@ -572,7 +575,7 @@ router.patch("/:id/status", async (req, res) => {
     }
     
     const result = await db.collection("drivers").updateOne(
-      { _id: new require("mongodb").ObjectId(req.params.id) },
+      { _id: new ObjectId(req.params.id) },
       { $set: { status: status, lastUpdated: new Date() } }
     );
     

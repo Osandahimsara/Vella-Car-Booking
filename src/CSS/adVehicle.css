@@ -16,7 +16,7 @@
 }
 
 .userhead {
-  background: linear-gradient(135deg, #ff4d30 0%, #e63946 100%);
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.8) 0%, rgba(0, 120, 212, 0.6) 100%);
   color: white;
   text-align: center;
   padding: 25px;
@@ -51,7 +51,7 @@ fieldset {
   height: 200px;
   object-fit: cover;
   border-radius: 15px;
-  border: 3px solid #ff4d30;
+  border: 3px solid rgba(0, 120, 212, 0.5);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
@@ -60,7 +60,7 @@ fieldset {
   position: absolute;
   top: -10px;
   right: -10px;
-  background: #ff4d30;
+  background: rgba(0, 120, 212, 0.8);
   color: white;
   border: none;
   border-radius: 50%;
@@ -75,14 +75,14 @@ fieldset {
 }
 
 .remove-image-btn:hover {
-  background: #e63946;
+  background: rgba(0, 120, 212, 1);
   transform: scale(1.1);
 }
 
 .upload-placeholder {
   width: 200px;
   height: 200px;
-  border: 3px dashed #ff4d30;
+  border: 3px dashed rgba(0, 120, 212, 0.5);
   border-radius: 15px;
   display: flex;
   flex-direction: column;
@@ -97,7 +97,7 @@ fieldset {
 
 .upload-placeholder:hover {
   background: #e9ecef;
-  border-color: #e63946;
+  border-color: rgba(0, 120, 212, 0.8);
   transform: scale(1.02);
 }
 
@@ -108,7 +108,7 @@ fieldset {
 .upload-icon {
   font-size: 48px;
   margin-bottom: 10px;
-  color: #ff4d30;
+  color: rgba(0, 120, 212, 0.8);
   pointer-events: none; /* Let clicks pass through */
 }
 
@@ -131,7 +131,7 @@ fieldset {
 
 /* Add hover effects for better UX */
 .image-upload-container:hover .upload-placeholder {
-  border-color: #e63946;
+  border-color: rgba(0, 120, 212, 0.8);
   background: #e9ecef;
 }
 
@@ -161,12 +161,12 @@ label {
 
 .input:focus {
   outline: none;
-  border-color: #ff4d30;
-  box-shadow: 0 0 0 3px rgba(255, 77, 48, 0.1);
+  border-color: rgba(0, 120, 212, 0.8);
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
 }
 
 .input:hover {
-  border-color: #ff4d30;
+  border-color: rgba(0, 120, 212, 0.5);
 }
 
 select.input {
@@ -230,14 +230,14 @@ select.input {
 }
 
 .btn2 {
-  background: linear-gradient(135deg, #ff4d30 0%, #e63946 100%);
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.8) 0%, rgba(0, 120, 212, 0.6) 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(255, 77, 48, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
 }
 
 .btn2:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 77, 48, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
 }
 
 .btn1:disabled, .btn2:disabled {

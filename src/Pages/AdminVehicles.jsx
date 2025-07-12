@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import '../CSS/admin-vehicles.css';
+import '../CSS/adminvehicles.css';
 
 const AdminVehicles = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -151,7 +151,7 @@ const AdminVehicles = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <Link to="/Adminpage" style={{
               textDecoration: 'none',
-              color: '#0078D4',
+              color: 'rgba(0, 120, 212, 1)',
               fontWeight: '600',
               fontSize: '1.1rem',
               display: 'flex',
@@ -163,14 +163,14 @@ const AdminVehicles = () => {
             </Link>
             <span style={{ color: '#6c757d', fontSize: '1.2rem' }}>|</span>
             <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '1.4rem' }}>
-              <i className="fas fa-car-side" style={{ marginRight: '10px', color: '#0078D4' }}></i>
+              <i className="fas fa-car-side" style={{ marginRight: '10px', color: 'rgba(0, 120, 212, 1)' }}></i>
               Vehicle Management
             </h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <Link to="/VehicleRegister" style={{
               padding: '8px 16px',
-              background: '#0078D4',
+              background: 'rgba(0, 120, 212, 1)',
               color: 'white',
               textDecoration: 'none',
               borderRadius: '8px',
@@ -204,11 +204,11 @@ const AdminVehicles = () => {
         
         {/* Enhanced Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #0078D4 0%, #005A9E 100%)',
+          background: 'linear-gradient(135deg, rgba(0, 120, 212, 1) 0%, rgba(0, 120, 212, 0.8) 100%)',
           borderRadius: '20px',
           padding: '40px 35px',
           marginBottom: '35px',
-          boxShadow: '0 15px 35px rgba(0, 120, 212, 0.3)',
+          boxShadow: '0 15px 35px rgba(0, 120, 212, 0.5)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -396,7 +396,7 @@ const AdminVehicles = () => {
           padding: '30px',
           marginBottom: '30px',
           boxShadow: '0 15px 35px rgba(0,0,0,0.08)',
-          border: '1px solid rgba(0, 120, 212, 0.08)',
+          border: '1px solid rgba(0, 120, 212, 0.5)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -417,7 +417,7 @@ const AdminVehicles = () => {
             left: '-20px',
             width: '100px',
             height: '100px',
-            background: 'linear-gradient(135deg, rgba(16, 124, 16, 0.04), rgba(15, 107, 15, 0.02))',
+            background: 'linear-gradient(135deg, rgba(0, 120, 212, 0.5), rgba(0, 120, 212, 0.3))',
             borderRadius: '50%',
             opacity: 0.5
           }}></div>
@@ -446,7 +446,7 @@ const AdminVehicles = () => {
                   zIndex: 2
                 }}>
                   <i className="fas fa-search" style={{
-                    color: '#0078D4',
+                    color: 'rgba(0, 120, 212, 1)',
                     fontSize: '16px'
                   }}></i>
                 </div>
@@ -458,13 +458,13 @@ const AdminVehicles = () => {
                   style={{
                     width: '100%',
                     padding: '15px 20px 15px 45px',
-                    border: '2px solid #e3f2fd',
+                    border: '2px solid rgba(0, 120, 212, 0.5)',
                     borderRadius: '15px',
                     fontSize: '14px',
                     fontWeight: '500',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                    boxShadow: '0 4px 15px rgba(0, 120, 212, 0.08)',
+                    boxShadow: '0 4px 15px rgba(0, 120, 212, 0.5)',
                     outline: 'none',
                     color: '#2c3e50'
                   }}
@@ -490,7 +490,7 @@ const AdminVehicles = () => {
                   zIndex: 2
                 }}>
                   <i className="fas fa-filter" style={{
-                    color: '#0078D4',
+                    color: 'rgba(0, 120, 212, 1)',
                     fontSize: '14px'
                   }}></i>
                 </div>
@@ -499,7 +499,7 @@ const AdminVehicles = () => {
                   onChange={(e) => setFilterStatus(e.target.value)}
                   style={{
                     padding: '15px 20px 15px 40px',
-                    border: '2px solid #e3f2fd',
+                    border: '2px solid rgba(0, 120, 212, 0.5)',
                     borderRadius: '15px',
                     fontSize: '14px',
                     fontWeight: '500',
@@ -508,7 +508,7 @@ const AdminVehicles = () => {
                     maxWidth: '140px',
                     cursor: 'pointer',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 4px 15px rgba(0, 120, 212, 0.08)',
+                    boxShadow: '0 4px 15px rgba(0, 120, 212, 0.5)',
                     outline: 'none',
                     color: '#2c3e50',
                     appearance: 'none',
@@ -542,13 +542,13 @@ const AdminVehicles = () => {
               alignItems: 'center'
             }}>
               <div style={{
-                background: 'linear-gradient(135deg, #0078D4 0%, #005A9E 100%)',
+                background: 'linear-gradient(135deg, rgba(0, 120, 212, 1) 0%, rgba(0, 120, 212, 0.8) 100%)',
                 padding: '20px 25px',
                 borderRadius: '18px',
                 textAlign: 'center',
                 color: 'white',
                 minWidth: '120px',
-                boxShadow: '0 8px 25px rgba(0, 120, 212, 0.25)',
+                boxShadow: '0 8px 25px rgba(0, 120, 212, 0.5)',
                 position: 'relative',
                 overflow: 'hidden',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -556,7 +556,7 @@ const AdminVehicles = () => {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 120, 212, 0.35)';
+                e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 120, 212, 0.5)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0) scale(1)';
@@ -699,7 +699,7 @@ const AdminVehicles = () => {
           }}>
             <i className="fas fa-spinner fa-spin" style={{ 
               fontSize: '48px', 
-              color: '#0078D4',
+              color: 'rgba(0, 120, 212, 1)',
               marginBottom: '20px'
             }}></i>
             <p style={{ fontSize: '1.2rem', color: '#6c757d' }}>Loading vehicles...</p>
@@ -778,7 +778,7 @@ const AdminVehicles = () => {
                     left: 0,
                     right: 0,
                     height: '4px',
-                    background: 'linear-gradient(90deg, #0078D4, #005A9E)'
+                    background: 'linear-gradient(90deg, rgba(0, 120, 212, 1), rgba(0, 120, 212, 0.8))'
                   }}></div>
 
                   <div style={{
@@ -867,7 +867,7 @@ const AdminVehicles = () => {
                         background: '#f8f9fa',
                         borderRadius: '8px'
                       }}>
-                        <i className="fas fa-hashtag" style={{ color: '#0078D4', width: '16px' }}></i>
+                        <i className="fas fa-hashtag" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
                         <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{vehicle.vehicleNumber}</span>
                       </div>
                       <div style={{
@@ -878,7 +878,7 @@ const AdminVehicles = () => {
                         background: '#f8f9fa',
                         borderRadius: '8px'
                       }}>
-                        <i className="fas fa-calendar-alt" style={{ color: '#0078D4', width: '16px' }}></i>
+                        <i className="fas fa-calendar-alt" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
                         <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{vehicle.year}</span>
                       </div>
                       {vehicle.fuelType && (
@@ -890,7 +890,7 @@ const AdminVehicles = () => {
                           background: '#f8f9fa',
                           borderRadius: '8px'
                         }}>
-                          <i className="fas fa-gas-pump" style={{ color: '#0078D4', width: '16px' }}></i>
+                          <i className="fas fa-gas-pump" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
                           <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{vehicle.fuelType}</span>
                         </div>
                       )}
@@ -903,7 +903,7 @@ const AdminVehicles = () => {
                           background: '#f8f9fa',
                           borderRadius: '8px'
                         }}>
-                          <i className="fas fa-cogs" style={{ color: '#0078D4', width: '16px' }}></i>
+                          <i className="fas fa-cogs" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
                           <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{vehicle.transmission}</span>
                         </div>
                       )}
@@ -917,7 +917,7 @@ const AdminVehicles = () => {
                           borderRadius: '8px',
                           gridColumn: vehicle.fuelType && vehicle.transmission ? 'span 2' : 'span 1'
                         }}>
-                          <i className="fas fa-users" style={{ color: '#0078D4', width: '16px' }}></i>
+                          <i className="fas fa-users" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
                           <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{vehicle.seatingCapacity} place</span>
                         </div>
                       )}
@@ -1116,7 +1116,7 @@ const AdminVehicles = () => {
                 setStatusMessage('');
               }}
               style={{
-                backgroundColor: '#fa4226',
+                backgroundColor: 'rgba(0, 120, 212, 1)',
                 color: 'white',
                 border: 'none',
                 padding: '12px 30px',
@@ -1126,8 +1126,8 @@ const AdminVehicles = () => {
                 cursor: 'pointer',
                 transition: 'background-color 0.3s ease'
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#e63946'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#fa4226'}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 0.8)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 1)'}
             >
               OK
             </button>
@@ -1194,7 +1194,7 @@ const AdminVehicles = () => {
                 setShowDeleteSuccessModal(false);
               }}
               style={{
-                backgroundColor: '#fa4226',
+                backgroundColor: 'rgba(0, 120, 212, 1)',
                 color: 'white',
                 border: 'none',
                 padding: '12px 30px',
@@ -1204,8 +1204,8 @@ const AdminVehicles = () => {
                 cursor: 'pointer',
                 transition: 'background-color 0.3s ease'
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#e63946'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#fa4226'}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 0.8)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 1)'}
             >
               OK
             </button>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../CSS/admindrivers.css';
 
@@ -8,20 +9,13 @@ const AdminDrivers = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [showModal, setShowModal] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState(null);
-  const [modalMode, setModalMode] = useState('edit'); // 'edit', 'delete'
-
-  // Form state for editing
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    license: '',
-    experience: '',
-    status: 'active'
-  });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
 
   // Fetch drivers on component mount
   useEffect(() => {
@@ -46,64 +40,61 @@ const AdminDrivers = () => {
   const filteredDrivers = drivers.filter(driver => {
     const matchesSearch = driver.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          driver.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         driver.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         (driver.contact && driver.contact.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = filterStatus === 'all' || driver.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  // Handle modal actions
+  // Handle delete driver with custom modal
   const handleDeleteDriver = (driver) => {
-    console.log('Delete driver function called:', driver);
-    try {
-      setSelectedDriver(driver);
-      setModalMode('delete');
-      setShowModal(true);
-      console.log('Delete modal should now be open');
-    } catch (error) {
-      console.error('Error in handleDeleteDriver:', error);
-    }
+    setDriverToDelete(driver);
+    setShowDeleteModal(true);
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log('Form submitted with mode:', modalMode);
+  // Confirm delete action
+  const confirmDelete = async () => {
+    if (!driverToDelete) return;
     
     try {
       setLoading(true);
+      const response = await axios.delete(`http://localhost:8000/api/driver/${driverToDelete._id}`);
+      console.log('Delete response:', response.data);
       
-      if (modalMode === 'edit') {
-        console.log('Updating driver with data:', formData);
-        const response = await axios.put(`http://localhost:8000/api/driver/${selectedDriver._id}`, formData);
-        console.log('Update response:', response.data);
-        alert('Driver updated successfully!');
-      } else if (modalMode === 'delete') {
-        console.log('Deleting driver with ID:', selectedDriver._id);
-        const response = await axios.delete(`http://localhost:8000/api/driver/${selectedDriver._id}`);
-        console.log('Delete response:', response.data);
-        alert('Driver deleted successfully!');
-      }
+      // Close modal and reset state
+      setShowDeleteModal(false);
+      setDriverToDelete(null);
       
-      setShowModal(false);
-      setSelectedDriver(null);
-      fetchDrivers(); // Refresh the list
+      // Show success message
+      setShowDeleteSuccessModal(true);
+      
+      // Refresh the drivers list
+      await fetchDrivers();
     } catch (err) {
-      console.error('Error in handleSubmit:', err);
-      console.error('Error response:', err.response?.data);
-      alert(`Error ${modalMode === 'edit' ? 'updating' : 'deleting'} driver. Please try again.`);
+      console.error('Error deleting driver:', err);
+      
+      if (err.response?.status === 404) {
+        setErrorMessage('Driver not found. It may have already been deleted.');
+      } else {
+        setErrorMessage(`Error deleting driver: ${err.response?.data?.message || err.message}`);
+      }
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
   };
 
+  // Cancel delete action
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDriverToDelete(null);
+  };
+
   // Handle status change
   const handleStatusChange = async (driverId, newStatus) => {
-    console.log('Status change function called:', driverId, newStatus);
     try {
-      const response = await axios.put(`http://localhost:8000/api/driver/${driverId}`, { 
+      await axios.put(`http://localhost:8000/api/driver/${driverId}`, { 
         status: newStatus 
       });
-      console.log('Status update response:', response.data);
       
       // Update the local state immediately
       setDrivers(prevDrivers => 
@@ -114,577 +105,950 @@ const AdminDrivers = () => {
         )
       );
       
-      alert(`Driver status updated to ${newStatus}!`);
-      console.log('Status updated successfully');
+      setStatusMessage(`Driver status updated to ${newStatus}!`);
+      setShowStatusModal(true);
     } catch (err) {
       console.error('Error updating driver status:', err);
-      console.error('Error response:', err.response?.data);
-      alert('Error updating driver status. Please try again.');
+      setErrorMessage('Error updating driver status. Please try again.');
+      setShowErrorModal(true);
       
       // Refresh the list to restore the original state
       fetchDrivers();
     }
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedDriver(null);
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      license: '',
-      experience: '',
-      status: 'active'
-    });
-  };
-
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8f9fa" }}>
-      {/* Enhanced Sidebar */}
-      <div id="nav-bar" className="nav-bar" 
-           style={{ 
-             backgroundColor: '#2c3e50',
-             boxShadow: '2px 0 10px rgba(0,0,0,0.1)',
-             transition: 'all 0.3s ease',
-             width: '280px',
-             position: 'fixed',
-             left: 0,
-             top: 0,
-             height: '100vh',
-             zIndex: 1000,
-             overflowY: 'auto'
-           }}>
-        
-        <div id="nav-header" style={{ padding: '20px', borderBottom: '1px solid #34495e' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ 
-              width: '60px', 
-              height: '60px', 
-              background: '#0078D4', 
-              borderRadius: '50%',
-              margin: '0 auto 10px',
+    <div style={{ minHeight: "100vh", background: "#f8f9fa" }}>
+      <style>
+        {`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(-5deg); }
+            50% { transform: translateY(-10px) rotate(-3deg); }
+          }
+          
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+          
+          .feature-tag {
+            animation: pulse 2s ease-in-out infinite;
+          }
+          
+          .feature-tag:nth-child(1) { animation-delay: 0s; }
+          .feature-tag:nth-child(2) { animation-delay: 0.3s; }
+          .feature-tag:nth-child(3) { animation-delay: 0.6s; }
+        `}
+      </style>
+      {/* Top Navigation */}
+      <div style={{
+        background: 'white',
+        padding: '15px 30px',
+        borderBottom: '1px solid #e9ecef',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        marginBottom: '30px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <Link to="/Adminpage" style={{
+              textDecoration: 'none',
+              color: 'rgba(0, 120, 212, 1)',
+              fontWeight: '600',
+              fontSize: '1.1rem',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              gap: '8px'
             }}>
-              <i className="fas fa-users" style={{ color: 'white', fontSize: '24px' }}></i>
-            </div>
-            <span style={{ color: "white", fontWeight: "bold", fontSize: "1.5rem", display: 'block' }}>
+              <i className="fas fa-arrow-left"></i>
+              Back to Dashboard
+            </Link>
+            <span style={{ color: '#6c757d', fontSize: '1.2rem' }}>|</span>
+            <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '1.4rem' }}>
+              <i className="fas fa-user-tie" style={{ marginRight: '10px', color: 'rgba(0, 120, 212, 1)' }}></i>
               Driver Management
-            </span>
-            <small style={{ color: '#bdc3c7', fontSize: '12px' }}>Car Booking System</small>
+            </h2>
           </div>
-        </div>
-
-        <div id="nav-content" style={{ padding: '20px 0' }}>
-          {[
-            { icon: "fas fa-tachometer-alt", label: "Dashboard", path: "/Adminpage" },
-            { icon: "fas fa-car", label: "Vehicles", path: "/AdminVehicles" },
-            { icon: "fas fa-users", label: "Drivers", path: "/AdminDrivers", active: true },
-            { icon: "fas fa-calendar-alt", label: "Bookings", path: "/AdminBookings" },
-            { icon: "fas fa-chart-bar", label: "Reports", path: "/AdminReports" },
-            { icon: "fas fa-cog", label: "Settings", path: "/AdminSettings" }
-          ].map((item, index) => (
-            <a
-              key={index}
-              href={item.path}
-              className={`nav-item ${item.active ? 'active' : ''}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '15px 20px',
-                color: item.active ? '#0078D4' : '#ecf0f1',
-                textDecoration: 'none',
-                borderLeft: item.active ? '4px solid #0078D4' : '4px solid transparent',
-                backgroundColor: item.active ? '#34495e' : 'transparent',
-                transition: 'all 0.3s ease',
-                margin: '5px 0'
-              }}
-              onMouseEnter={(e) => {
-                if (!item.active) {
-                  e.target.style.backgroundColor = '#34495e';
-                  e.target.style.color = '#0078D4';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!item.active) {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#ecf0f1';
-                }
-              }}
-            >
-              <i className={item.icon} style={{ marginRight: '15px', fontSize: '18px' }}></i>
-              <span style={{ fontWeight: item.active ? '600' : '500' }}>{item.label}</span>
-            </a>
-          ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <Link to="/DriverRegister" style={{
+              padding: '8px 16px',
+              background: 'rgba(0, 120, 212, 1)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = '#106ebe';
+              e.target.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = '#0078D4';
+              e.target.style.transform = 'translateY(0)';
+            }}>
+              <i className="fas fa-plus"></i>
+              Add Driver
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div style={{ 
-        marginLeft: '280px', 
-        width: 'calc(100% - 280px)', 
-        padding: '30px',
-        background: '#f8f9fa',
-        minHeight: '100vh'
+        padding: '0 30px 30px 30px',
+        width: '100%'
       }}>
+        
         {/* Enhanced Header */}
-        <div style={{ 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '15px',
-          padding: '30px',
-          marginBottom: '30px',
-          color: 'white',
-          boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(0, 120, 212, 1) 0%, rgba(0, 120, 212, 0.8) 100%)',
+          borderRadius: '20px',
+          padding: '40px 35px',
+          marginBottom: '35px',
+          boxShadow: '0 15px 35px rgba(0, 120, 212, 0.5)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-            <div style={{ 
-              width: '50px',
-              height: '50px',
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: '15px'
-            }}>
-              <i className="fas fa-users" style={{ fontSize: '24px' }}></i>
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: '600' }}>
-                Driver Management
-              </h1>
-              <p style={{ margin: 0, opacity: 0.9, fontSize: '1.1rem' }}>
-                Manage all registered drivers in your fleet
-              </p>
-            </div>
-          </div>
-        </div>
+          {/* Background Pattern */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            opacity: 0.4
+          }}></div>
+          
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 1,
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              {/* Welcome Section */}
+              <div style={{ marginBottom: '15px' }}>
+                <span style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  padding: '6px 15px',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  Driver Management
+                </span>
+              </div>
 
-        {/* Enhanced Statistics Cards */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-          gap: '20px',
-          marginBottom: '30px'
-        }}>
-          {[
-            { 
-              title: 'Total Drivers', 
-              value: drivers.length, 
-              icon: 'fas fa-users',
-              color: '#3498db',
-              bgColor: '#e3f2fd'
-            },
-            { 
-              title: 'Active Drivers', 
-              value: drivers.filter(d => d.status === 'active').length, 
-              icon: 'fas fa-user-check',
-              color: '#27ae60',
-              bgColor: '#e8f5e8'
-            },
-            { 
-              title: 'Inactive Drivers', 
-              value: drivers.filter(d => d.status === 'inactive').length, 
-              icon: 'fas fa-user-times',
-              color: '#e74c3c',
-              bgColor: '#ffeaea'
-            },
-            { 
-              title: 'Suspended Drivers', 
-              value: drivers.filter(d => d.status === 'suspended').length, 
-              icon: 'fas fa-user-slash',
-              color: '#f39c12',
-              bgColor: '#fff3e0'
-            }
-          ].map((stat, index) => (
-            <div 
-              key={index}
-              style={{ 
-                background: 'white',
-                borderRadius: '15px',
-                padding: '25px',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-                border: '1px solid #f0f0f0',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-5px)';
-                e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)';
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <h3 style={{ 
-                    margin: 0, 
-                    fontSize: '2rem', 
-                    fontWeight: '700',
-                    color: stat.color
-                  }}>
-                    {stat.value}
-                  </h3>
-                  <p style={{ 
-                    margin: '5px 0 0 0', 
-                    color: '#666',
-                    fontSize: '1rem',
-                    fontWeight: '500'
-                  }}>
-                    {stat.title}
-                  </p>
-                </div>
-                <div style={{ 
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  background: stat.bgColor,
+              {/* Main Title */}
+              <h1 style={{ 
+                fontSize: '3rem', 
+                color: 'white', 
+                margin: '0 0 10px 0',
+                fontWeight: '800',
+                textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                lineHeight: '1.1'
+              }}>
+                <span style={{ 
+                  fontSize: '3.5rem',
+                  marginRight: '15px',
+                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                  display: 'inline-block',
+                  transform: 'rotate(-5deg)',
+                  animation: 'float 3s ease-in-out infinite'
+                }}>
+                  
+                </span>
+                <span style={{ 
+                  background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontWeight: '900'
+                }}>
+                  Driver
+                </span>{' '}
+                Management
+              </h1>
+
+              {/* Subtitle */}
+              <p style={{ 
+                color: 'rgba(255, 255, 255, 0.9)', 
+                fontSize: '1.2rem', 
+                margin: '0 0 15px 0',
+                fontWeight: '400',
+                lineHeight: '1.4'
+              }}>
+                Manage all registered drivers in the system 
+                <br/>
+                <span style={{ 
+                  fontSize: '1rem', 
+                  opacity: 8,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  gap: '8px',
+                  marginTop: '5px'
                 }}>
-                  <i className={stat.icon} style={{ fontSize: '24px', color: stat.color }}></i>
+                  <span style={{ 
+                    fontSize: '0.9rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                  className="feature-tag">
+                    ⚡ View
+                  </span>
+                  <span style={{ 
+                    fontSize: '0.9rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                  className="feature-tag">
+                    ✏️ Update
+                  </span>
+                  <span style={{ 
+                    fontSize: '0.9rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                  className="feature-tag">
+                    🎯 Delete
+                  </span>
+                </span>
+              </p>
+            </div>
+
+            {/* Right Side Actions */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '15px',
+              alignItems: 'flex-end'
+            }}>
+              {/* Time Display */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                padding: '10px 20px',
+                borderRadius: '15px',
+                textAlign: 'center',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                minWidth: '150px'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '2px' }}>
+                  {new Date().toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                  })}
+                </div>
+                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                  {new Date().toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ')[1]}
                 </div>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Floating Elements */}
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            width: '100px',
+            height: '100px',
+            background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+            borderRadius: '50%',
+            opacity: 0.3
+          }}></div>
+          
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '20px',
+            width: '60px',
+            height: '60px',
+            background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1))',
+            borderRadius: '50%',
+            opacity: 0.4
+          }}></div>
         </div>
 
         {/* Enhanced Controls */}
-        <div style={{ 
-          background: 'white',
-          borderRadius: '15px',
-          padding: '25px',
+        <div style={{
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          borderRadius: '25px',
+          padding: '30px',
           marginBottom: '30px',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-          border: '1px solid #f0f0f0'
+          boxShadow: '0 15px 35px rgba(0,0,0,0.08)',
+          border: '1px solid rgba(0, 120, 212, 0.5)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '300px' }}>
-              <div style={{ position: 'relative' }}>
+          {/* Decorative background elements */}
+          <div style={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-10px',
+            width: '80px',
+            height: '80px',
+            background: 'linear-gradient(135deg, rgba(0, 120, 212, 0.05), rgba(0, 90, 158, 0.03))',
+            borderRadius: '50%',
+            opacity: 0.6
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            bottom: '-20px',
+            left: '-20px',
+            width: '100px',
+            height: '100px',
+            background: 'linear-gradient(135deg, rgba(0, 120, 212, 0.5), rgba(0, 120, 212, 0.3))',
+            borderRadius: '50%',
+            opacity: 0.5
+          }}></div>
+
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '25px',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              gap: '20px',
+              alignItems: 'center',
+              minWidth: '300px'
+            }}>
+              <div style={{ position: 'relative', width: '320px' }}>
+                <div style={{
+                  position: 'absolute',
+                  left: '15px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 2
+                }}>
+                  <i className="fas fa-search" style={{
+                    color: 'rgba(0, 120, 212, 1)',
+                    fontSize: '16px'
+                  }}></i>
+                </div>
                 <input
                   type="text"
-                  placeholder="Search drivers by name or email..."
+                  placeholder="Search drivers by name, contact..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '12px 45px 12px 15px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '10px',
-                    fontSize: '1rem',
+                    padding: '15px 20px 15px 45px',
+                    border: '2px solid rgba(0, 120, 212, 0.5)',
+                    borderRadius: '15px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                    boxShadow: '0 4px 15px rgba(0, 120, 212, 0.5)',
                     outline: 'none',
-                    transition: 'all 0.3s ease'
+                    color: '#2c3e50'
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = '#0078D4';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(0,120,212,0.1)';
+                    e.target.style.boxShadow = '0 8px 25px rgba(0, 120, 212, 0.15)';
+                    e.target.style.transform = 'translateY(-2px)';
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = '#e0e0e0';
-                    e.target.style.boxShadow = 'none';
+                    e.target.style.borderColor = '#e3f2fd';
+                    e.target.style.boxShadow = '0 4px 15px rgba(0, 120, 212, 0.08)';
+                    e.target.style.transform = 'translateY(0)';
                   }}
                 />
-                <i className="fas fa-search" style={{ 
+              </div>
+              
+              <div style={{ position: 'relative' }}>
+                <div style={{
                   position: 'absolute',
-                  right: '15px',
+                  left: '15px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#999',
-                  fontSize: '16px'
-                }}></i>
+                  zIndex: 2
+                }}>
+                  <i className="fas fa-filter" style={{
+                    color: 'rgba(0, 120, 212, 1)',
+                    fontSize: '14px'
+                  }}></i>
+                </div>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  style={{
+                    padding: '15px 20px 15px 40px',
+                    border: '2px solid rgba(0, 120, 212, 0.5)',
+                    borderRadius: '15px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                    minWidth: '140px',
+                    maxWidth: '140px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 4px 15px rgba(0, 120, 212, 0.5)',
+                    outline: 'none',
+                    color: '#2c3e50',
+                    appearance: 'none',
+                    backgroundImage: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%), url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'%230078D4\' viewBox=\'0 0 16 16\'%3e%3cpath d=\'M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z\'/%3e%3c/svg%3e")',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'calc(100% - 15px) center',
+                    backgroundSize: '16px'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#0078D4';
+                    e.target.style.boxShadow = '0 8px 25px rgba(0, 120, 212, 0.15)';
+                    e.target.style.transform = 'translateY(-2px)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e3f2fd';
+                    e.target.style.boxShadow = '0 4px 15px rgba(0, 120, 212, 0.08)';
+                    e.target.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
             </div>
-            
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              style={{
-                padding: '12px 15px',
-                border: '2px solid #e0e0e0',
-                borderRadius: '10px',
-                fontSize: '1rem',
-                outline: 'none',
-                background: 'white',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#0078D4';
-                e.target.style.boxShadow = '0 0 0 3px rgba(0,120,212,0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e0e0e0';
-                e.target.style.boxShadow = 'none';
-              }}
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-            </select>
 
-            <button
-              onClick={fetchDrivers}
-              style={{
-                padding: '12px 20px',
-                background: '#0078D4',
+            <div style={{ 
+              display: 'flex', 
+              gap: '20px',
+              flexWrap: 'wrap',
+              alignItems: 'center'
+            }}>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(0, 120, 212, 1) 0%, rgba(0, 120, 212, 0.8) 100%)',
+                padding: '20px 25px',
+                borderRadius: '18px',
+                textAlign: 'center',
                 color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.3s ease'
+                minWidth: '120px',
+                boxShadow: '0 8px 25px rgba(0, 120, 212, 0.5)',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer'
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = '#106ebe';
-                e.target.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 120, 212, 0.5)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.background = '#0078D4';
-                e.target.style.transform = 'translateY(0)';
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 120, 212, 0.25)';
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-10px',
+                  right: '-10px',
+                  width: '40px',
+                  height: '40px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '50%',
+                  opacity: 0.6
+                }}></div>
+                <div style={{
+                  position: 'absolute',
+                  top: '5px',
+                  left: '5px',
+                  fontSize: '12px',
+                  opacity: 0.7
+                }}>
+                  <i className="fas fa-user-tie"></i>
+                </div>
+                <div style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '5px', position: 'relative', zIndex: 1 }}>
+                  {drivers.length}
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.95, fontWeight: '600', position: 'relative', zIndex: 1 }}>
+                  Total Drivers
+                </div>
+              </div>
+              
+              <div style={{
+                background: 'linear-gradient(135deg, #107C10 0%, #0F6B0F 100%)',
+                padding: '20px 25px',
+                borderRadius: '18px',
+                textAlign: 'center',
+                color: 'white',
+                minWidth: '120px',
+                boxShadow: '0 8px 25px rgba(16, 124, 16, 0.25)',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer'
               }}
-            >
-              <i className="fas fa-sync-alt"></i>
-              Refresh
-            </button>
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 15px 35px rgba(16, 124, 16, 0.35)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 124, 16, 0.25)';
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-10px',
+                  right: '-10px',
+                  width: '40px',
+                  height: '40px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '50%',
+                  opacity: 0.6
+                }}></div>
+                <div style={{
+                  position: 'absolute',
+                  top: '5px',
+                  left: '5px',
+                  fontSize: '12px',
+                  opacity: 0.7
+                }}>
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <div style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '5px', position: 'relative', zIndex: 1 }}>
+                  {drivers.filter(d => d.status === 'active').length}
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.95, fontWeight: '600', position: 'relative', zIndex: 1 }}>
+                  Active
+                </div>
+              </div>
+              
+              <div style={{
+                background: 'linear-gradient(135deg, #D13438 0%, #B22A2F 100%)',
+                padding: '20px 25px',
+                borderRadius: '18px',
+                textAlign: 'center',
+                color: 'white',
+                minWidth: '120px',
+                boxShadow: '0 8px 25px rgba(209, 52, 56, 0.25)',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 15px 35px rgba(209, 52, 56, 0.35)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(209, 52, 56, 0.25)';
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-10px',
+                  right: '-10px',
+                  width: '40px',
+                  height: '40px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '50%',
+                  opacity: 0.6
+                }}></div>
+                <div style={{
+                  position: 'absolute',
+                  top: '5px',
+                  left: '5px',
+                  fontSize: '12px',
+                  opacity: 0.7
+                }}>
+                  <i className="fas fa-pause-circle"></i>
+                </div>
+                <div style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '5px', position: 'relative', zIndex: 1 }}>
+                  {drivers.filter(d => d.status === 'inactive').length}
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.95, fontWeight: '600', position: 'relative', zIndex: 1 }}>
+                  Inactive
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Loading and Error States */}
         {loading && (
           <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            padding: '50px',
+            textAlign: 'center', 
+            padding: '60px 20px',
             background: 'white',
-            borderRadius: '15px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.08)'
+            borderRadius: '20px',
+            boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
           }}>
-            <div style={{ textAlign: 'center' }}>
-              <i className="fas fa-spinner fa-spin" style={{ fontSize: '48px', color: '#0078D4', marginBottom: '20px' }}></i>
-              <p style={{ fontSize: '1.2rem', color: '#666', margin: 0 }}>Loading drivers...</p>
-            </div>
+            <i className="fas fa-spinner fa-spin" style={{ 
+              fontSize: '48px', 
+              color: 'rgba(0, 120, 212, 1)',
+              marginBottom: '20px'
+            }}></i>
+            <p style={{ fontSize: '1.2rem', color: '#6c757d' }}>Loading drivers...</p>
           </div>
         )}
 
         {error && (
           <div style={{ 
-            background: '#fff2f2',
-            border: '1px solid #ffcccb',
-            borderRadius: '15px',
-            padding: '30px',
-            textAlign: 'center',
-            marginBottom: '30px'
+            textAlign: 'center', 
+            padding: '60px 20px',
+            background: 'white',
+            borderRadius: '20px',
+            boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+            border: '2px solid #dc3545'
           }}>
-            <i className="fas fa-exclamation-triangle" style={{ fontSize: '48px', color: '#e74c3c', marginBottom: '15px' }}></i>
-            <p style={{ fontSize: '1.2rem', color: '#e74c3c', margin: 0 }}>{error}</p>
-            <button
-              onClick={fetchDrivers}
-              style={{
-                marginTop: '15px',
-                padding: '10px 20px',
-                background: '#e74c3c',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-            >
-              Try Again
-            </button>
+            <i className="fas fa-exclamation-triangle" style={{ 
+              fontSize: '48px', 
+              color: '#dc3545',
+              marginBottom: '20px'
+            }}></i>
+            <p style={{ fontSize: '1.2rem', color: '#dc3545' }}>{error}</p>
           </div>
         )}
 
-        {/* Enhanced Drivers Grid */}
+        {/* Drivers Grid */}
         {!loading && !error && (
-          <div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+            gap: '25px',
+            marginBottom: '30px'
+          }}>
             {filteredDrivers.length === 0 ? (
-              <div style={{ 
-                background: 'white',
-                borderRadius: '15px',
-                padding: '60px',
+              <div style={{
+                gridColumn: '1 / -1',
                 textAlign: 'center',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.08)'
+                padding: '80px 20px',
+                background: 'white',
+                borderRadius: '20px',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
               }}>
-                <i className="fas fa-user-tie" style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }}></i>
-                <h3 style={{ fontSize: '1.5rem', color: '#666', margin: '0 0 10px 0' }}>No drivers found</h3>
-                <p style={{ color: '#999', margin: 0 }}>No drivers match your search criteria.</p>
+                <i className="fas fa-user-tie" style={{ 
+                  fontSize: '64px', 
+                  color: '#dee2e6',
+                  marginBottom: '20px'
+                }}></i>
+                <h3 style={{ color: '#6c757d', marginBottom: '10px' }}>No drivers found</h3>
+                <p style={{ color: '#8e8e93' }}>No drivers match your search criteria.</p>
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-                gap: '25px'
-              }}>
-                {filteredDrivers.map((driver) => (
-                  <div 
-                    key={driver._id} 
-                    style={{
-                      background: 'white',
-                      borderRadius: '15px',
-                      padding: '25px',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-                      border: '1px solid #f0f0f0',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = 'translateY(-5px)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)';
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-                      <div style={{ position: 'relative', marginRight: '15px' }}>
-                        {driver.driverImageUrl ? (
-                          <img
-                            src={`http://localhost:8000${driver.driverImageUrl}`}
-                            alt={`${driver.firstName} ${driver.lastName}`}
-                            style={{
-                              width: '60px',
-                              height: '60px',
-                              borderRadius: '50%',
-                              objectFit: 'cover',
-                              border: '3px solid #e0e0e0'
-                            }}
-                          />
-                        ) : (
-                          <div style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '50%',
-                            background: '#f0f0f0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '3px solid #e0e0e0'
-                          }}>
-                            <i className="fas fa-user" style={{ fontSize: '24px', color: '#999' }}></i>
-                          </div>
-                        )}
-                        
-                        <div style={{
-                          position: 'absolute',
-                          bottom: '-2px',
-                          right: '-2px',
-                          padding: '2px 6px',
-                          borderRadius: '10px',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          color: 'white',
-                          background: driver.status === 'active' ? '#27ae60' : 
-                                     driver.status === 'inactive' ? '#e74c3c' : '#f39c12'
-                        }}>
-                          {driver.status}
-                        </div>
-                      </div>
-                      
-                      <div style={{ flex: 1 }}>
-                        <h3 style={{ 
-                          margin: 0, 
-                          fontSize: '1.3rem', 
-                          fontWeight: '600',
-                          color: '#333'
-                        }}>
-                          {driver.firstName} {driver.lastName}
-                        </h3>
-                        <p style={{ 
-                          margin: '2px 0 0 0', 
-                          color: '#666',
-                          fontSize: '0.9rem'
-                        }}>
-                          ID: {driver._id?.slice(-6) || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
+              filteredDrivers.map((driver) => (
+                <div key={driver._id} style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                  border: '2px solid transparent',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.15)';
+                  e.currentTarget.style.borderColor = '#0078D4';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+                  e.currentTarget.style.borderColor = 'transparent';
+                }}>
+                  
+                  {/* Top stripe */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: 'linear-gradient(90deg, rgba(0, 120, 212, 1), rgba(0, 120, 212, 0.8))'
+                  }}></div>
 
-                    <div style={{ marginBottom: '20px' }}>
-                      {[
-                        { icon: 'fas fa-envelope', label: 'Email', value: driver.email },
-                        { icon: 'fas fa-phone', label: 'Phone', value: driver.contact || driver.phone },
-                        { icon: 'fas fa-id-card', label: 'License', value: driver.DLicenceNo || driver.license },
-                        { icon: 'fas fa-calendar', label: 'Experience', value: driver.age || driver.experience ? `${driver.age || driver.experience} years` : null }
-                      ].filter(item => item.value).map((item, index) => (
-                        <div key={index} style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          padding: '8px 0',
-                          borderBottom: '1px solid #f5f5f5'
-                        }}>
-                          <i className={item.icon} style={{ 
-                            width: '20px', 
-                            color: '#0078D4', 
-                            marginRight: '10px' 
-                          }}></i>
-                          <span style={{ 
-                            color: '#666', 
-                            fontSize: '0.9rem',
-                            fontWeight: '500'
-                          }}>
-                            {item.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <select
-                        value={driver.status}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handleStatusChange(driver._id, e.target.value);
-                        }}
+                  <div style={{
+                    position: 'relative',
+                    height: '220px',
+                    overflow: 'hidden',
+                    background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
+                  }}>
+                    {driver.driverImageUrl ? (
+                      <img
+                        src={`http://localhost:8000${driver.driverImageUrl}`}
+                        alt={`${driver.firstName} ${driver.lastName}`}
                         style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          border: '2px solid #e0e0e0',
-                          borderRadius: '8px',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          cursor: 'pointer'
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          transition: 'transform 0.4s ease'
                         }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="suspended">Suspended</option>
-                      </select>
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '100%',
+                        color: '#6c757d'
+                      }}>
+                        <i className="fas fa-user-tie" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
+                        <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>No Image</span>
+                      </div>
+                    )}
+                    
+                    <div style={{
+                      position: 'absolute',
+                      top: '15px',
+                      right: '15px'
+                    }}>
+                      <span style={{
+                        padding: '8px 16px',
+                        borderRadius: '25px',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.8px',
+                        background: driver.status === 'active' 
+                          ? 'linear-gradient(135deg, #107C10 0%, #0F6B0F 100%)'
+                          : 'linear-gradient(135deg, #6c757d 0%, #495057 100%)',
+                        color: 'white',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        backdropFilter: 'blur(10px)'
+                      }}>
+                        {driver.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '25px' }}>
+                    <h3 style={{
+                      fontSize: '1.4rem',
+                      fontWeight: '700',
+                      color: '#2c3e50',
+                      margin: '0 0 15px 0',
+                      textAlign: 'center'
+                    }}>
+                      {driver.firstName} {driver.lastName}
+                    </h3>
+                    
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr',
+                      gap: '10px',
+                      marginBottom: '20px',
+                      padding: '15px',
+                      background: '#f8f9fa',
+                      borderRadius: '12px',
+                      border: '1px solid #e9ecef'
+                    }}>
+                      {/* Age */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 0',
+                        borderBottom: '1px solid #e9ecef'
+                      }}>
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          fontWeight: '600', 
+                          color: '#495057',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <i className="fas fa-birthday-cake" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
+                          Age -
+                        </span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#2c3e50' }}>
+                          {driver.age || 'N/A'}
+                        </span>
+                      </div>
+
+                      {/* Phone Number */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 0',
+                        borderBottom: '1px solid #e9ecef'
+                      }}>
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          fontWeight: '600', 
+                          color: '#495057',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <i className="fas fa-phone" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
+                          Phone number -
+                        </span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#2c3e50' }}>
+                          {driver.contact || 'N/A'}
+                        </span>
+                      </div>
+
+                      {/* NIC Number */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 0',
+                        borderBottom: '1px solid #e9ecef'
+                      }}>
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          fontWeight: '600', 
+                          color: '#495057',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <i className="fas fa-id-card-alt" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
+                          Nic number -
+                        </span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#2c3e50' }}>
+                          {driver.NIC || 'N/A'}
+                        </span>
+                      </div>
+
+                      {/* Driver License Number */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 0',
+                        borderBottom: '1px solid #e9ecef'
+                      }}>
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          fontWeight: '600', 
+                          color: '#495057',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <i className="fas fa-id-card" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
+                          Driven licen number -
+                        </span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#2c3e50' }}>
+                          {driver.DLicenceNo || 'N/A'}
+                        </span>
+                      </div>
+
+                      {/* Address */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 0'
+                      }}>
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          fontWeight: '600', 
+                          color: '#495057',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <i className="fas fa-map-marker-alt" style={{ color: 'rgba(0, 120, 212, 1)', width: '16px' }}></i>
+                          Addres -
+                        </span>
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          fontWeight: '500', 
+                          color: '#2c3e50',
+                          textAlign: 'right',
+                          maxWidth: '150px',
+                          wordBreak: 'break-word'
+                        }}>
+                          {driver.Address || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      display: 'flex',
+                      gap: '12px',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <select
+                          value={driver.status}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(driver._id, e.target.value);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            width: '100%',
+                            padding: '10px 15px',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            background: 'white',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
                       
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           handleDeleteDriver(driver);
                         }}
                         style={{
-                          padding: '8px 12px',
-                          background: '#e74c3c',
+                          padding: '10px 16px',
+                          background: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)',
                           color: 'white',
                           border: 'none',
                           borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '600',
                           cursor: 'pointer',
+                          transition: 'all 0.3s ease',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '5px',
-                          transition: 'all 0.3s ease'
+                          gap: '6px'
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.background = '#c0392b';
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 6px 20px rgba(220, 53, 69, 0.4)';
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.background = '#e74c3c';
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = 'none';
                         }}
                       >
                         <i className="fas fa-trash"></i>
@@ -692,340 +1056,307 @@ const AdminDrivers = () => {
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             )}
           </div>
         )}
       </div>
 
-      {/* Enhanced Modal */}
-      {showModal && (
+      {/* Custom Delete Confirmation Modal */}
+      {showDeleteModal && driverToDelete && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <div className="delete-modal-header">
+              <div className="delete-warning-icon">
+                <i className="fas fa-trash" style={{ display: 'block', fontSize: '28px', color: 'white' }}></i>
+                <span style={{ display: 'none', fontSize: '28px', color: 'white' }}>🗑️</span>
+              </div>
+              <h3>Delete Driver</h3>
+            </div>
+            
+            <div className="delete-modal-body">
+              <p>Are you sure you want to delete this driver?</p>
+              <div className="vehicle-info-preview">
+                <div className="vehicle-preview-image">
+                  {driverToDelete.driverImageUrl ? (
+                    <img
+                      src={`http://localhost:8000${driverToDelete.driverImageUrl}`}
+                      alt={`${driverToDelete.firstName} ${driverToDelete.lastName}`}
+                    />
+                  ) : (
+                    <div className="no-image-preview">
+                      <i className="fas fa-user-tie"></i>
+                    </div>
+                  )}
+                </div>
+                <div className="vehicle-preview-details">
+                  <h4>{driverToDelete.firstName} {driverToDelete.lastName}</h4>
+                  <p>Contact: {driverToDelete.contact}</p>
+                  <p>License: {driverToDelete.DLicenceNo || 'N/A'}</p>
+                </div>
+              </div>
+              <div className="delete-warning-text">
+                <i className="fas fa-info-circle"></i>
+                <span>This action cannot be undone. The driver will be permanently removed from the system.</span>
+              </div>
+            </div>
+            
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                onClick={cancelDelete}
+                className="cancel-delete-btn"
+              >
+                <i className="fas fa-times"></i>
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="confirm-delete-btn"
+                disabled={loading}
+              >
+                <i className="fas fa-trash"></i>
+                {loading ? 'Deleting...' : 'Delete Driver'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Success Modal */}
+      {showStatusModal && (
         <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 10000,
-          padding: '20px'
-        }} onClick={closeModal}>
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
           <div style={{
-            background: 'white',
+            backgroundColor: 'white',
             borderRadius: '15px',
-            width: '100%',
-            maxWidth: modalMode === 'edit' ? '600px' : '400px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-          }} onClick={(e) => e.stopPropagation()}>
-            
-            {/* Modal Header */}
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
             <div style={{
-              padding: '25px 30px',
-              borderBottom: '1px solid #f0f0f0',
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#28a745',
+              borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
             }}>
-              <h2 style={{
-                margin: 0,
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                color: '#333',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
-              }}>
-                {modalMode === 'edit' && (
-                  <>
-                    <i className="fas fa-edit" style={{ color: '#0078D4' }}></i>
-                    Edit Driver
-                  </>
-                )}
-                {modalMode === 'delete' && (
-                  <>
-                    <i className="fas fa-trash" style={{ color: '#e74c3c' }}></i>
-                    Delete Driver
-                  </>
-                )}
-              </h2>
-              <button onClick={closeModal} style={{
-                background: 'none',
+              ✓
+            </div>
+            <h2 style={{
+              color: '#28a745',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Success!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              {statusMessage}
+            </p>
+            <button
+              onClick={() => {
+                setShowStatusModal(false);
+                setStatusMessage('');
+              }}
+              style={{
+                backgroundColor: 'rgba(0, 120, 212, 1)',
+                color: 'white',
                 border: 'none',
-                fontSize: '24px',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
                 cursor: 'pointer',
-                color: '#999',
-                padding: '5px',
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.3s ease'
+                transition: 'background-color 0.3s ease'
               }}
-              onMouseEnter={(e) => {
-                e.target.style.background = '#f0f0f0';
-                e.target.style.color = '#333';
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 0.8)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 1)'}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Success Modal */}
+      {showDeleteSuccessModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#28a745',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✓
+            </div>
+            <h2 style={{
+              color: '#28a745',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Deleted!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              Driver has been deleted successfully!
+            </p>
+            <button
+              onClick={() => {
+                setShowDeleteSuccessModal(false);
               }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'none';
-                e.target.style.color = '#999';
-              }}>
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
+              style={{
+                backgroundColor: 'rgba(0, 120, 212, 1)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 0.8)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(0, 120, 212, 1)'}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
 
-            {/* Modal Body */}
-            <div style={{ padding: '30px' }}>
-              {modalMode === 'edit' && (
-                <form onSubmit={handleSubmit}>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                    gap: '20px',
-                    marginBottom: '30px'
-                  }}>
-                    {[
-                      { key: 'firstName', label: 'First Name', type: 'text', required: true },
-                      { key: 'lastName', label: 'Last Name', type: 'text', required: true },
-                      { key: 'email', label: 'Email', type: 'email', required: true },
-                      { key: 'phone', label: 'Phone', type: 'tel', required: true },
-                      { key: 'license', label: 'License', type: 'text', required: true },
-                      { key: 'experience', label: 'Experience (years)', type: 'number', required: true }
-                    ].map((field) => (
-                      <div key={field.key} style={{ display: 'flex', flexDirection: 'column' }}>
-                        <label style={{
-                          marginBottom: '8px',
-                          fontSize: '0.9rem',
-                          fontWeight: '600',
-                          color: '#333'
-                        }}>
-                          {field.label} {field.required && <span style={{ color: '#e74c3c' }}>*</span>}
-                        </label>
-                        <input
-                          type={field.type}
-                          value={formData[field.key]}
-                          onChange={(e) => setFormData({...formData, [field.key]: e.target.value})}
-                          required={field.required}
-                          style={{
-                            padding: '12px 15px',
-                            border: '2px solid #e0e0e0',
-                            borderRadius: '8px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            transition: 'all 0.3s ease'
-                          }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = '#0078D4';
-                            e.target.style.boxShadow = '0 0 0 3px rgba(0,120,212,0.1)';
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '#e0e0e0';
-                            e.target.style.boxShadow = 'none';
-                          }}
-                        />
-                      </div>
-                    ))}
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <label style={{
-                        marginBottom: '8px',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        color: '#333'
-                      }}>
-                        Status <span style={{ color: '#e74c3c' }}>*</span>
-                      </label>
-                      <select
-                        value={formData.status}
-                        onChange={(e) => setFormData({...formData, status: e.target.value})}
-                        required
-                        style={{
-                          padding: '12px 15px',
-                          border: '2px solid #e0e0e0',
-                          borderRadius: '8px',
-                          fontSize: '1rem',
-                          outline: 'none',
-                          background: 'white',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#0078D4';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(0,120,212,0.1)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#e0e0e0';
-                          e.target.style.boxShadow = 'none';
-                        }}
-                      >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="suspended">Suspended</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div style={{
-                    display: 'flex',
-                    gap: '15px',
-                    justifyContent: 'flex-end',
-                    paddingTop: '20px',
-                    borderTop: '1px solid #f0f0f0'
-                  }}>
-                    <button type="button" onClick={closeModal} style={{
-                      padding: '12px 25px',
-                      background: '#f8f9fa',
-                      color: '#666',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#e9ecef';
-                      e.target.style.color = '#333';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = '#f8f9fa';
-                      e.target.style.color = '#666';
-                    }}>
-                      Cancel
-                    </button>
-                    <button type="submit" style={{
-                      padding: '12px 25px',
-                      background: '#0078D4',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#106ebe';
-                      e.target.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = '#0078D4';
-                      e.target.style.transform = 'translateY(0)';
-                    }}>
-                      <i className="fas fa-save"></i>
-                      Save Changes
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {modalMode === 'delete' && selectedDriver && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: '#fff2f2',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 20px'
-                  }}>
-                    <i className="fas fa-exclamation-triangle" style={{ fontSize: '36px', color: '#e74c3c' }}></i>
-                  </div>
-                  
-                  <h3 style={{
-                    margin: '0 0 10px 0',
-                    fontSize: '1.3rem',
-                    fontWeight: '600',
-                    color: '#333'
-                  }}>
-                    Are you sure you want to delete this driver?
-                  </h3>
-                  
-                  <p style={{
-                    margin: '0 0 10px 0',
-                    fontSize: '1.1rem',
-                    fontWeight: '600',
-                    color: '#0078D4'
-                  }}>
-                    {selectedDriver.firstName} {selectedDriver.lastName}
-                  </p>
-                  
-                  <p style={{
-                    margin: '0 0 30px 0',
-                    color: '#666',
-                    fontSize: '1rem',
-                    lineHeight: '1.5'
-                  }}>
-                    This action cannot be undone. The driver will be permanently removed from the system.
-                  </p>
-                  
-                  <div style={{
-                    display: 'flex',
-                    gap: '15px',
-                    justifyContent: 'center'
-                  }}>
-                    <button type="button" onClick={closeModal} style={{
-                      padding: '12px 25px',
-                      background: '#f8f9fa',
-                      color: '#666',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#e9ecef';
-                      e.target.style.color = '#333';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = '#f8f9fa';
-                      e.target.style.color = '#666';
-                    }}>
-                      Cancel
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={(e) => handleSubmit(e)} 
-                      style={{
-                        padding: '12px 25px',
-                        background: '#e74c3c',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = '#c0392b';
-                        e.target.style.transform = 'translateY(-1px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = '#e74c3c';
-                        e.target.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      <i className="fas fa-trash"></i>
-                      Delete Driver
-                    </button>
-                  </div>
-                </div>
-              )}
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            width: '90%',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#dc3545',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✕
             </div>
+            <h2 style={{
+              color: '#dc3545',
+              marginBottom: '15px',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}>
+              Error!
+            </h2>
+            <p style={{
+              color: '#666',
+              marginBottom: '30px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              {errorMessage}
+            </p>
+            <button
+              onClick={() => {
+                setShowErrorModal(false);
+                setErrorMessage('');
+              }}
+              style={{
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+            >
+              Try Again
+            </button>
           </div>
         </div>
       )}

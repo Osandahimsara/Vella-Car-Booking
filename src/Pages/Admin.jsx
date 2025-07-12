@@ -26,58 +26,139 @@ const AdminPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [recentBookings, setRecentBookings] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Add dashboard animations
+  useEffect(() => {
+    if (!document.getElementById('dashboard-animations')) {
+      const style = document.createElement('style');
+      style.id = 'dashboard-animations';
+      style.textContent = `
+        @keyframes rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
 
   // Fetch real data from your backend API
   useEffect(() => {
     fetchDashboardData();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchDashboardData, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
+
+  // Manual refresh function
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchDashboardData();
+  };
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Fetching dashboard data...');
       
-      // Fetch all data in parallel
-      const [vehiclesRes, driversRes, bookingsRes] = await Promise.all([
-        axios.get('http://localhost:8000/api/vehicles'),
-        axios.get('http://localhost:8000/api/driver'),
-        axios.get('http://localhost:8000/api/booking')
-      ]);
-
-      const vehicles = vehiclesRes.data;
-      const drivers = driversRes.data;
-      const bookings = bookingsRes.data;
-
-      // Calculate statistics
-      setTotalVehicles(vehicles.length);
-      setTotalDrivers(drivers.length);
-      setTotalBookings(bookings.length);
+      // Fetch vehicles data
+      let vehicles = [];
+      try {
+        const vehiclesRes = await axios.get('http://localhost:8000/api/vehicles');
+        vehicles = vehiclesRes.data || [];
+        console.log('✅ Vehicles fetched:', vehicles.length, 'total');
+      } catch (vehicleError) {
+        console.error('❌ Error fetching vehicles:', vehicleError.message);
+      }
       
-      setActiveVehicles(vehicles.filter(v => v.status === 'active').length);
-      setActiveDrivers(drivers.filter(d => d.status === 'active').length);
-      setPendingBookings(bookings.filter(b => b.status === 'pending').length);
-      setCompletedBookings(bookings.filter(b => b.status === 'completed').length);
+      // Fetch drivers data
+      let drivers = [];
+      try {
+        const driversRes = await axios.get('http://localhost:8000/api/driver');
+        drivers = driversRes.data || [];
+        console.log('✅ Drivers fetched:', drivers.length, 'total');
+      } catch (driverError) {
+        console.error('❌ Error fetching drivers:', driverError.message);
+      }
+      
+      // Fetch bookings data
+      let bookings = [];
+      try {
+        const bookingsRes = await axios.get('http://localhost:8000/api/booking');
+        bookings = bookingsRes.data || [];
+        console.log('✅ Bookings fetched:', bookings.length, 'total');
+      } catch (bookingError) {
+        console.error('❌ Error fetching bookings:', bookingError.message);
+      }
+
+      // Calculate real-time statistics
+      const totalVehicleCount = vehicles.length;
+      const totalDriverCount = drivers.length;
+      const totalBookingCount = bookings.length;
+      
+      const activeVehicleCount = vehicles.filter(v => v.status === 'available' || v.status === 'active').length;
+      const activeDriverCount = drivers.filter(d => d.status === 'active').length;
+      const pendingBookingCount = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length;
+      const completedBookingCount = bookings.filter(b => b.status === 'completed').length;
+      
+      // Update state with real data
+      setTotalVehicles(totalVehicleCount);
+      setTotalDrivers(totalDriverCount);
+      setTotalBookings(totalBookingCount);
+      setActiveVehicles(activeVehicleCount);
+      setActiveDrivers(activeDriverCount);
+      setPendingBookings(pendingBookingCount);
+      setCompletedBookings(completedBookingCount);
+      
+      console.log(' Dashboard Statistics:');
+      console.log(`  Vehicles: ${totalVehicleCount} total, ${activeVehicleCount} active`);
+      console.log(`  Drivers: ${totalDriverCount} total, ${activeDriverCount} active`);
+      console.log(`  Bookings: ${totalBookingCount} total, ${pendingBookingCount} pending, ${completedBookingCount} completed`);
       
       // Calculate revenue from completed bookings
       const totalRevenue = bookings
         .filter(b => b.status === 'completed')
-        .reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
+        .reduce((sum, b) => {
+          const amount = parseFloat(b.totalAmount || b.total || b.price || 0);
+          return sum + amount;
+        }, 0);
       setRevenue(totalRevenue);
 
       // Get recent bookings (last 5)
       const recent = bookings
-        .sort((a, b) => new Date(b.createdAt || b.pickTime) - new Date(a.createdAt || a.pickTime))
+        .sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.pickTime || a.bookingDate);
+          const dateB = new Date(b.createdAt || b.pickTime || b.bookingDate);
+          return dateB - dateA;
+        })
         .slice(0, 5);
       setRecentBookings(recent);
+      
+      // Update last updated timestamp
+      setLastUpdated(new Date());
 
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('❌ Critical error fetching dashboard data:', error);
       // Fallback to demo values if API fails
-      setTotalVehicles(12);
-      setTotalDrivers(8);
-      setPendingBookings(3);
-      setTotalBookings(25);
-      setActiveVehicles(10);
-      setActiveDrivers(6);
+      setTotalVehicles(0);
+      setTotalDrivers(0);
+      setPendingBookings(0);
+      setTotalBookings(0);
+      setActiveVehicles(0);
+      setActiveDrivers(0);
       setCompletedBookings(18);
       setRevenue(15420);
 
@@ -330,15 +411,27 @@ const cards = [
                 lineHeight: '1.1'
               }}>
                 <span style={{ 
+                  fontSize: '3.5rem',
+                  marginRight: '15px',
+                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                  display: 'inline-block',
+                  transform: 'rotate(-5deg)',
+                  animation: 'float 3s ease-in-out infinite'
+                }}>
+                  
+                </span>
+                <span style={{ 
                   background: 'linear-gradient(45deg, #FFD700, #FFA500)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
+                  backgroundClip: 'text',
+                  fontWeight: '900'
                 }}>
-                  
+                  Driver
                 </span>{' '}
-                Admin Dashboard
+                Dashboard
               </h1>
+                
 
               {/* Subtitle */}
               <p style={{ 
@@ -358,33 +451,162 @@ const cards = [
               
             </div>
 
-            {/* Right Side Actions */}
+            {/* Right Side Actions - Perfectly Aligned */}
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column', 
               gap: '15px',
-              alignItems: 'flex-end'
+              alignItems: 'center',
+              minWidth: '180px'
             }}>
-              {/* Time Display */}
+              {/* Refresh Button */}
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                style={{
+                  background: loading ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.25)',
+                  color: 'white',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  padding: '15px 30px',
+                  borderRadius: '30px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  backdropFilter: 'blur(20px)',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  width: '100%',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 30px rgba(255, 255, 255, 0.15)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.target.style.background = 'rgba(255, 255, 255, 0.35)';
+                    e.target.style.transform = 'translateY(-4px) scale(1.02)';
+                    e.target.style.boxShadow = '0 12px 40px rgba(255, 255, 255, 0.25)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.target.style.background = 'rgba(255, 255, 255, 0.25)';
+                    e.target.style.transform = 'translateY(0) scale(1)';
+                    e.target.style.boxShadow = '0 8px 30px rgba(255, 255, 255, 0.15)';
+                  }
+                }}
+              >
+                <i className={loading ? "fas fa-spinner fa-spin" : "fas fa-sync-alt"} 
+                   style={{ fontSize: '18px' }}></i>
+                {loading ? 'Updating...' : 'Refresh Data'}
+              </button>
+
+              {/* Time Display - Perfectly Centered */}
+              <div style={{
+                background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
+                color: 'white',
+                padding: '20px',
+                borderRadius: '25px',
+                textAlign: 'center',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                width: '100%',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                {/* Subtle animated background */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-50%',
+                  left: '-50%',
+                  width: '200%',
+                  height: '200%',
+                  background: 'conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+                  animation: 'rotate 20s linear infinite',
+                  opacity: 0.3
+                }}></div>
+                
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{ 
+                    fontSize: '2.2rem', 
+                    fontWeight: '900', 
+                    marginBottom: '8px',
+                    background: 'linear-gradient(45deg, #FFD700, #FFA500, #FF6B6B)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    backgroundSize: '200% 200%',
+                    animation: 'gradientShift 3s ease-in-out infinite',
+                    lineHeight: '1',
+                    textShadow: '0 2px 10px rgba(255, 215, 0, 0.3)'
+                  }}>
+                    {new Date().toLocaleTimeString('en-US', { 
+                      hour: '2-digit', 
+                      minute: '2-digit'
+                    })}
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.8rem', 
+                    opacity: 0.95,
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px',
+                    fontWeight: '600',
+                    color: 'rgba(255, 255, 255, 0.9)'
+                  }}>
+                    {new Date().toLocaleDateString('en-US', { 
+                      weekday: 'short'
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Last Updated - Clean & Aligned */}
               <div style={{
                 background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                padding: '10px 20px',
-                borderRadius: '15px',
+                color: 'rgba(255, 255, 255, 0.95)',
+                padding: '12px 20px',
+                borderRadius: '20px',
                 textAlign: 'center',
-                backdropFilter: 'blur(10px)',
+                backdropFilter: 'blur(15px)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
-                minWidth: '150px'
+                fontSize: '0.75rem',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
               }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '2px' }}>
-                  {new Date().toLocaleTimeString('en-US', { 
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  opacity: 0.8,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  fontWeight: '600'
+                }}>
+                  <i className="fas fa-clock" style={{ fontSize: '12px' }}></i>
+                  <span>Last Updated</span>
+                </div>
+                <span style={{ 
+                  fontWeight: '800', 
+                  color: 'white',
+                  fontSize: '0.85rem',
+                  background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  {lastUpdated.toLocaleTimeString('en-US', { 
                     hour: '2-digit', 
-                    minute: '2-digit'
+                    minute: '2-digit',
+                    second: '2-digit'
                   })}
-                </div>
-                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>
-                  {new Date().toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ')[1]}
-                </div>
+                </span>
               </div>
             </div>
           </div>

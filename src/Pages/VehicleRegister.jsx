@@ -429,7 +429,7 @@ const VehicleRegister = () => {
         </fieldset>
       </div>
 
-      {/* Success Modal */}
+      {/* Beautiful Success Modal */}
       {showSuccessModal && (
         <div style={{
           position: 'fixed',
@@ -437,78 +437,193 @@ const VehicleRegister = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          zIndex: 1000
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)'
         }}>
           <div style={{
             backgroundColor: 'white',
-            borderRadius: '15px',
-            padding: '40px',
+            borderRadius: '25px',
+            padding: '50px',
             textAlign: 'center',
-            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
-            maxWidth: '400px',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+            maxWidth: '500px',
             width: '90%',
-            animation: 'slideIn 0.3s ease-out'
+            position: 'relative',
+            overflow: 'hidden',
+            border: '1px solid rgba(0, 120, 212, 0.1)'
           }}>
+            {/* Background decoration */}
             <div style={{
-              width: '80px',
-              height: '80px',
+              position: 'absolute',
+              top: '-50px',
+              right: '-50px',
+              width: '150px',
+              height: '150px',
+              background: 'linear-gradient(135deg, rgba(0, 120, 212, 0.1), rgba(0, 120, 212, 0.05))',
+              borderRadius: '50%',
+              opacity: 0.7
+            }}></div>
+            <div style={{
+              position: 'absolute',
+              bottom: '-30px',
+              left: '-30px',
+              width: '100px',
+              height: '100px',
+              background: 'linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05))',
+              borderRadius: '50%',
+              opacity: 0.8
+            }}></div>
+
+            {/* Success Icon */}
+            <div style={{
+              width: '120px',
+              height: '120px',
               backgroundColor: '#28a745',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 20px',
-              fontSize: '40px',
-              color: 'white'
+              margin: '0 auto 30px',
+              fontSize: '60px',
+              color: 'white',
+              boxShadow: '0 15px 35px rgba(40, 167, 69, 0.3)',
+              position: 'relative',
+              zIndex: 1
             }}>
-              ✓
+              <div style={{
+                animation: 'checkmark 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'
+              }}>
+                ✓
+              </div>
             </div>
+
+            {/* Success Title */}
             <h2 style={{
               color: '#28a745',
-              marginBottom: '15px',
-              fontSize: '24px',
-              fontWeight: 'bold'
+              marginBottom: '20px',
+              fontSize: '32px',
+              fontWeight: '800',
+              position: 'relative',
+              zIndex: 1,
+              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-              Success!
+              🚗 Success!
             </h2>
+
+            {/* Success Message */}
             <p style={{
-              color: '#666',
-              marginBottom: '30px',
-              fontSize: '16px',
-              lineHeight: '1.5'
+              color: '#2c3e50',
+              marginBottom: '15px',
+              fontSize: '20px',
+              fontWeight: '600',
+              lineHeight: '1.4',
+              position: 'relative',
+              zIndex: 1
             }}>
-              Vehicle has been registered successfully!
+              Vehicle Registered Successfully!
             </p>
-            <button
-              onClick={() => {
-                setShowSuccessModal(false);
-                navigate('/AdminVehicles');
-              }}
-              style={{
-                backgroundColor: '#fa4226',
-                color: 'white',
-                border: 'none',
-                padding: '12px 30px',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                transition: 'background-color 0.3s ease'
-              }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#e63946'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#fa4226'}
-            >
-              View Vehicles
-            </button>
+
+            <p style={{
+              color: '#6c757d',
+              marginBottom: '35px',
+              fontSize: '16px',
+              lineHeight: '1.6',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              The new vehicle has been added to the fleet and is now ready to be assigned to bookings.
+            </p>
+
+            {/* Action Buttons */}
+            <div style={{
+              display: 'flex',
+              gap: '15px',
+              justifyContent: 'center',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  // Reset form
+                  setBrandName('');
+                  setModelName('');
+                  setVehicleNumber('');
+                  setYear('');
+                  setFuelType('');
+                  setSeatCount('');
+                  setVehicleImage(null);
+                  setImagePreview(null);
+                  setErrors({});
+                }}
+                style={{
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  padding: '15px 30px',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 8px 20px rgba(40, 167, 69, 0.3)'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#218838';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 12px 25px rgba(40, 167, 69, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = '#28a745';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 8px 20px rgba(40, 167, 69, 0.3)';
+                }}
+              >
+                <i className="fas fa-plus" style={{ marginRight: '8px' }}></i>
+                Add Another Vehicle
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate('/AdminVehicles');
+                }}
+                style={{
+                  backgroundColor: 'rgba(0, 120, 212, 1)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '15px 30px',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 8px 20px rgba(0, 120, 212, 0.3)'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = 'rgba(0, 120, 212, 0.8)';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 12px 25px rgba(0, 120, 212, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'rgba(0, 120, 212, 1)';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 8px 20px rgba(0, 120, 212, 0.3)';
+                }}
+              >
+                <i className="fas fa-car" style={{ marginRight: '8px' }}></i>
+                View All Vehicles
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Error Modal */}
+      {/* Beautiful Error Modal */}
       {showErrorModal && (
         <div style={{
           position: 'fixed',
@@ -516,52 +631,81 @@ const VehicleRegister = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          zIndex: 1000
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)'
         }}>
           <div style={{
             backgroundColor: 'white',
-            borderRadius: '15px',
-            padding: '40px',
+            borderRadius: '25px',
+            padding: '50px',
             textAlign: 'center',
-            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
-            maxWidth: '400px',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+            maxWidth: '450px',
             width: '90%',
-            animation: 'slideIn 0.3s ease-out'
+            position: 'relative',
+            overflow: 'hidden',
+            border: '1px solid rgba(220, 53, 69, 0.1)'
           }}>
+            {/* Background decoration */}
             <div style={{
-              width: '80px',
-              height: '80px',
+              position: 'absolute',
+              top: '-30px',
+              right: '-30px',
+              width: '120px',
+              height: '120px',
+              background: 'linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05))',
+              borderRadius: '50%',
+              opacity: 0.7
+            }}></div>
+
+            {/* Error Icon */}
+            <div style={{
+              width: '100px',
+              height: '100px',
               backgroundColor: '#dc3545',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 20px',
-              fontSize: '40px',
-              color: 'white'
+              margin: '0 auto 25px',
+              fontSize: '50px',
+              color: 'white',
+              boxShadow: '0 15px 35px rgba(220, 53, 69, 0.3)',
+              position: 'relative',
+              zIndex: 1
             }}>
               ✕
             </div>
+
+            {/* Error Title */}
             <h2 style={{
               color: '#dc3545',
-              marginBottom: '15px',
-              fontSize: '24px',
-              fontWeight: 'bold'
+              marginBottom: '20px',
+              fontSize: '28px',
+              fontWeight: '700',
+              position: 'relative',
+              zIndex: 1
             }}>
-              Error!
+              Registration Failed
             </h2>
+
+            {/* Error Message */}
             <p style={{
-              color: '#666',
-              marginBottom: '30px',
+              color: '#6c757d',
+              marginBottom: '35px',
               fontSize: '16px',
-              lineHeight: '1.5'
+              lineHeight: '1.6',
+              position: 'relative',
+              zIndex: 1
             }}>
               {errorMessage}
             </p>
+
+            {/* Action Button */}
             <button
               onClick={() => {
                 setShowErrorModal(false);
@@ -571,34 +715,54 @@ const VehicleRegister = () => {
                 backgroundColor: '#dc3545',
                 color: 'white',
                 border: 'none',
-                padding: '12px 30px',
-                borderRadius: '8px',
+                padding: '15px 40px',
+                borderRadius: '12px',
                 fontSize: '16px',
                 fontWeight: 'bold',
                 cursor: 'pointer',
-                transition: 'background-color 0.3s ease'
+                transition: 'all 0.3s ease',
+                boxShadow: '0 8px 20px rgba(220, 53, 69, 0.3)',
+                position: 'relative',
+                zIndex: 1
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = '#c82333';
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 12px 25px rgba(220, 53, 69, 0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = '#dc3545';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 8px 20px rgba(220, 53, 69, 0.3)';
+              }}
             >
+              <i className="fas fa-redo" style={{ marginRight: '8px' }}></i>
               Try Again
             </button>
           </div>
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-50px);
+      <style>
+        {`
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-50px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+          
+          @keyframes checkmark {
+            0% { transform: scale(0) rotate(45deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(45deg); opacity: 1; }
+            100% { transform: scale(1) rotate(45deg); opacity: 1; }
           }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
