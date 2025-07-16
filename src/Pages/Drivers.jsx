@@ -113,11 +113,8 @@ function Drivers() {
                   <h3>{driver.firstName} {driver.lastName}</h3>
                   <p className="driver-company">{driver.companyName}</p>
                   <div className="driver-details">
-                    <span className="driver-age">
-                      <i className="fa-solid fa-calendar"></i> {driver.age} years
-                    </span>
                     <span className="driver-contact">
-                      <i className="fa-solid fa-phone"></i> {driver.contact}
+                      <p className="fa-solid fa-phone"></p> {driver.contact}
                     </span>
                   </div>
                    {/*  License number display */}

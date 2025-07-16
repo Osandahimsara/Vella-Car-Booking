@@ -128,6 +128,7 @@ const BookingApproval = () => {
       dropOffTime: booking.dropOffTime || '',
       driver: booking.driver || ''
     });
+    setError(''); // Clear any previous errors
     setShowEditModal(true);
   };
 
@@ -137,6 +138,10 @@ const BookingApproval = () => {
       ...prev,
       [field]: value
     }));
+    // Clear error when user makes changes
+    if (error) {
+      setError('');
+    }
   };
 
   // Save edited booking details
@@ -145,6 +150,14 @@ const BookingApproval = () => {
     
     try {
       setEditLoading(true);
+      
+      // Check for conflicts before saving
+      const conflicts = await checkBookingConflicts();
+      if (conflicts.length > 0) {
+        // Show conflict errors
+        setError(conflicts.join(' '));
+        return;
+      }
       
       // API call to update booking
       const response = await axios.put(`http://localhost:8000/api/bookings/${selectedBooking._id}`, {
@@ -177,6 +190,7 @@ const BookingApproval = () => {
       setSuccessMessage('Booking details updated successfully!');
       setShowSuccessModal(true);
       setShowEditModal(false);
+      setError(''); // Clear any previous errors
       
     } catch (err) {
       console.error('Error updating booking:', err);
@@ -184,6 +198,60 @@ const BookingApproval = () => {
     } finally {
       setEditLoading(false);
     }
+  };
+
+  // Check for booking conflicts
+  const checkBookingConflicts = async () => {
+    const conflicts = [];
+    
+    // Get booking dates for comparison
+    const editedPickDate = new Date(editedBooking.pickTime);
+    const editedDropDate = new Date(editedBooking.dropTime);
+    
+    // Check vehicle conflicts
+    if (editedBooking.carType) {
+      const vehicleConflicts = bookings.filter(booking => 
+        booking._id !== selectedBooking._id && // Exclude current booking
+        booking.carType === editedBooking.carType &&
+        booking.status !== 'rejected' && // Only check active bookings
+        isDateOverlapping(
+          new Date(booking.pickTime),
+          new Date(booking.dropTime),
+          editedPickDate,
+          editedDropDate
+        )
+      );
+      
+      if (vehicleConflicts.length > 0) {
+        conflicts.push(`⚠️ Vehicle "${editedBooking.carType}" is already booked during this time period (Booking ID: ${vehicleConflicts[0].bookingId}).`);
+      }
+    }
+    
+    // Check driver conflicts
+    if (editedBooking.driver) {
+      const driverConflicts = bookings.filter(booking => 
+        booking._id !== selectedBooking._id && // Exclude current booking
+        booking.driver === editedBooking.driver &&
+        booking.status !== 'rejected' && // Only check active bookings
+        isDateOverlapping(
+          new Date(booking.pickTime),
+          new Date(booking.dropTime),
+          editedPickDate,
+          editedDropDate
+        )
+      );
+      
+      if (driverConflicts.length > 0) {
+        conflicts.push(`⚠️ Driver "${editedBooking.driver}" is already assigned to another booking during this time period (Booking ID: ${driverConflicts[0].bookingId}).`);
+      }
+    }
+    
+    return conflicts;
+  };
+
+  // Helper function to check if date ranges overlap
+  const isDateOverlapping = (start1, end1, start2, end2) => {
+    return start1 < end2 && end1 > start2;
   };
 
   // Confirm approval
@@ -1735,6 +1803,22 @@ const BookingApproval = () => {
                 Changes will be saved to the database. Customer will be notified of any modifications.
               </p>
             </div>
+
+            {/* Error Display */}
+            {error && (
+              <div style={{
+                background: '#f8d7da',
+                padding: '15px',
+                borderRadius: '10px',
+                marginBottom: '25px',
+                border: '1px solid #f5c6cb'
+              }}>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#721c24' }}>
+                  <i className="fas fa-exclamation-circle" style={{ marginRight: '8px' }}></i>
+                  {error}
+                </p>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
