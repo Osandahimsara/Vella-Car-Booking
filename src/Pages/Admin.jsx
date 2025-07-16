@@ -208,7 +208,8 @@ const cards = [
       color: "#0078D4",
       icon: <i className="fas fa-calendar-check"></i>,
       image: totalBookingsImg, 
-      trend: "+5 this week"
+      trend: "+5 this week",
+      link: "/BookingApproval"
     }
   ];
 

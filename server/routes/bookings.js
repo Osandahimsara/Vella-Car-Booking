@@ -49,12 +49,12 @@ router.post("/", async (req, res) => {
 const adminMailOptions = {
   from: process.env.EMAIL_USER,
   to: process.env.EMAIL_USER,
-  subject: "🚨 New Car Booking Request - " + bookingId,
+  subject: " New Car Booking Request - " + bookingId,
   html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
         <img src="cid:carimage" alt="Car" width="150" />
-        <h1 style="color: #dc3545; margin-top: 20px;">New Booking Alert! 🚨</h1>
+        <h1 style="color: #dc3545; margin-top: 20px;">New Booking Alert! </h1>
       </div>
       
       <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #ffc107;">
@@ -151,11 +151,11 @@ const adminMailOptions = {
     }
   ]
 };
- // User confirmation email
+ // User booking pending email
      const userMailOptions = {
   from: `"Vella Car Booking " <${process.env.EMAIL_USER}>`,
   to: booking.email,
-      subject: "Your Car Booking Confirmation",
+      subject: "Booking Request Received - Pending Approval",
       replyTo: process.env.EMAIL_USER,
   headers: {
     'X-Priority': '1',
@@ -166,25 +166,29 @@ const adminMailOptions = {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
             <img src="cid:carimage" alt="Car" width="150" />
-            <h1 style="color: #ff4d30; margin-top: 20px;">Booking Confirmed! </h1>
+            <h1 style="color: #ff8c00; margin-top: 20px;">Booking Request Received!</h1>
           </div>
           
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-            <h2 style="color: #2d3748; text-align: center;">Hi ${booking.name}!</h2>
-            <p style="text-align: center; font-size: 16px; color: #666;">
-              Your car booking has been confirmed. Here are your booking details:
+          <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #ffc107;">
+            <h2 style="color: #856404; text-align: center;">Hi ${booking.name}!</h2>
+            <p style="text-align: center; font-size: 16px; color: #856404;">
+              Thank you for your booking request! We've received your submission and it's currently being reviewed.
             </p>
           </div>
 
           <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <tr style="background: #ff4d30; color: white;">
+            <tr style="background: #ff8c00; color: white;">
               <td colspan="2" style="padding: 15px; text-align: center; font-size: 18px; font-weight: bold;">
-                Booking Details
+                 Booking Request Details
               </td>
             </tr>
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Booking ID:</td>
-              <td style="padding: 12px; border-bottom: 1px solid #eee; color: #ff4d30; font-weight: bold;">${booking.bookingId}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; color: #ff8c00; font-weight: bold;">${booking.bookingId}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Status:</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;"><span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-weight: bold;">⏳ PENDING APPROVAL</span></td>
             </tr>
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Car Type:</td>
@@ -192,19 +196,19 @@ const adminMailOptions = {
             </tr>
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Pick-Up Location:</td>
-              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.pickUp}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">📍 ${booking.pickUp}</td>
             </tr>
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Drop-Off Location:</td>
-              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.dropOff}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">📍 ${booking.dropOff}</td>
             </tr>
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Pick-Up Date & Time:</td>
-              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.pickTime} ${booking.pickUpTime || ''}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">🗓️ ${booking.pickTime} ${booking.pickUpTime ? '⏰ ' + booking.pickUpTime : ''}</td>
             </tr>
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Drop-Off Date & Time:</td>
-              <td style="padding: 12px; border-bottom: 1px solid #eee;">${booking.dropTime} ${booking.dropOffTime || ''}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">🗓️ ${booking.dropTime} ${booking.dropOffTime ? '⏰ ' + booking.dropOffTime : ''}</td>
             </tr>
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; background: #f8f9fa;">Driver Required:</td>
@@ -216,19 +220,33 @@ const adminMailOptions = {
             </tr>
           </table>
 
-          <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
-            <h3 style="color: #28a745; margin: 0 0 10px 0;">✅ What's Next?</h3>
-            <p style="margin: 0; color: #666;">
-              We'll contact you shortly to confirm the final details. 
-              Keep your booking ID handy for reference.
+          <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border-left: 5px solid #17a2b8;">
+            <h3 style="color: #0c5460; margin: 0 0 10px 0;">⏱️ What Happens Next?</h3>
+            <p style="margin: 0; color: #0c5460;">
+              Our team is reviewing your booking request to check vehicle availability and driver assignment. 
+              You'll receive an email confirmation within <strong>24 hours</strong> with the approval status.
+            </p>
+          </div>
+
+          <div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; border-left: 5px solid #dc3545;">
+            <p style="margin: 0; color: #721c24; font-size: 14px;">
+              <strong>📞 Need to modify your request?</strong><br>
+              Please contact us immediately at <a href="tel:${process.env.CONTACT_PHONE || '0112 050 050'}" style="color: #721c24; text-decoration: none;">${process.env.CONTACT_PHONE || ' 0112 050 050'}</a> 
+              with your Booking ID: <strong>${booking.bookingId}</strong>
             </p>
           </div>
 
           <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
             <p style="margin: 0; color: #666;">
-              Thank you for choosing our service! 🚗<br>
-              <strong>We'll see you soon!</strong>
+              Thank you for choosing Vella Car Booking! 🚗<br>
+              <strong>We'll get back to you soon!</strong>
             </p>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+              <small style="color: #6c757d;">
+                Request submitted on: ${new Date().toLocaleString()}<br>
+                Reference ID: ${booking.bookingId}
+              </small>
+            </div>
           </div>
         </div>
       `,
@@ -323,7 +341,7 @@ router.put("/:id/approve", async (req, res) => {
     const approvalEmailOptions = {
       from: `"Vella Car Booking" <${process.env.EMAIL_USER}>`,
       to: booking.email,
-      subject: `🎉 Booking Approved - ${booking.bookingId}`,
+      subject: `Booking Approved - ${booking.bookingId}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
@@ -341,7 +359,7 @@ router.put("/:id/approve", async (req, res) => {
           <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
             <tr style="background: #28a745; color: white;">
               <td colspan="2" style="padding: 15px; text-align: center; font-size: 18px; font-weight: bold;">
-                ✅ Approved Booking Details
+                 Approved Booking Details
               </td>
             </tr>
             <tr>
@@ -383,10 +401,10 @@ router.put("/:id/approve", async (req, res) => {
           </table>
 
           <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border-left: 5px solid #17a2b8;">
-            <h3 style="color: #0c5460; margin: 0 0 10px 0;">🚗 What's Next?</h3>
+            <h3 style="color: #0c5460; margin: 0 0 10px 0;"> What's Next?</h3>
             <p style="margin: 0; color: #0c5460;">
-              Your booking is now confirmed! We'll contact you shortly with final details.
-              Please have your booking ID ready: <strong>${booking.bookingId}</strong>
+              Your booking is confirmed. Please arrive on time at the designated booking location.
+              Please have your booking ID: <strong>${booking.bookingId}</strong>
             </p>
           </div>
 
@@ -542,6 +560,54 @@ router.put("/:id/reject", async (req, res) => {
   } catch (error) {
     console.error("Error rejecting booking:", error);
     res.status(500).json({ message: "Error rejecting booking", error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// PUT /api/bookings/:id - Update booking details
+router.put("/:id", async (req, res) => {
+  const client = new MongoClient(Db);
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // Remove any fields that shouldn't be updated directly
+    const { _id, bookingId, createdAt, status, ...allowedUpdates } = updateData;
+    
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    // Check if booking exists
+    const existingBooking = await db.collection("bookings").findOne({ _id: new ObjectId(id) });
+    if (!existingBooking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    
+    // Add updated timestamp
+    allowedUpdates.updatedAt = new Date();
+    
+    // Update the booking
+    const result = await db.collection("bookings").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: allowedUpdates }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    
+    // Fetch the updated booking
+    const updatedBooking = await db.collection("bookings").findOne({ _id: new ObjectId(id) });
+    
+    res.status(200).json({ 
+      message: "Booking updated successfully",
+      booking: updatedBooking
+    });
+    
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    res.status(500).json({ message: "Error updating booking", error: error.message });
   } finally {
     await client.close();
   }
