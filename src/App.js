@@ -12,6 +12,7 @@ import VehicleRegister from "./Pages/VehicleRegister";
 import Vehicles from "./Pages/Vehicles";
 import BookingApproval from "./Pages/BookingApproval";
 import Reports from "./Pages/Reports";
+import UserManagement from "./Pages/UserManagement";
 import "./CSS/global.css";
 
 
@@ -25,7 +26,8 @@ function App() {
                     location.pathname === "/DriverRegister" ||
                     location.pathname === "/VehicleRegister" ||
                     location.pathname === "/BookingApproval" ||
-                    location.pathname === "/Reports";
+                    location.pathname === "/Reports" ||
+                    location.pathname === "/UserManagement";
   
 
   return (
@@ -45,6 +47,7 @@ function App() {
           <Route path="vehicles" element={<Vehicles />} /> 
           <Route path="BookingApproval" element={<BookingApproval />} /> 
           <Route path="Reports" element={<Reports />} /> 
+          <Route path="UserManagement" element={<UserManagement />} /> 
         </Routes>
       </main>
     </div>

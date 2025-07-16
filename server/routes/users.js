@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
@@ -182,6 +182,151 @@ router.post("/reset-password", async (req, res) => {
     
   } catch (error) {
     console.error("Reset password error:", error);
+    res.status(500).json({ message: "Server error" });
+  } finally {
+    await client.close();
+  }
+});
+
+// GET /api/users - Get all users
+router.get("/", async (req, res) => {
+  const client = new MongoClient(Db);
+  
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const users = await db.collection("users").find({}).toArray();
+    
+    // Remove password from response for security
+    const safeUsers = users.map(user => {
+      const { password, ...safeUser } = user;
+      return safeUser;
+    });
+    
+    res.status(200).json(safeUsers);
+    
+  } catch (error) {
+    console.error("Get users error:", error);
+    res.status(500).json({ message: "Server error" });
+  } finally {
+    await client.close();
+  }
+});
+
+// POST /api/users - Create new user
+router.post("/", async (req, res) => {
+  const { name, email, password, role = 'user', phone, status = 'active' } = req.body;
+  const client = new MongoClient(Db);
+  
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    // Check if user already exists
+    const existingUser = await db.collection("users").findOne({ 
+      $or: [{ email }, { username: email }] 
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+    
+    // Create new user
+    const newUser = {
+      name,
+      email,
+      username: email, // Use email as username
+      password,
+      role,
+      phone,
+      status,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const result = await db.collection("users").insertOne(newUser);
+    
+    // Return user without password
+    const { password: _, ...safeUser } = newUser;
+    safeUser._id = result.insertedId;
+    
+    res.status(201).json(safeUser);
+    
+  } catch (error) {
+    console.error("Create user error:", error);
+    res.status(500).json({ message: "Server error" });
+  } finally {
+    await client.close();
+  }
+});
+
+// PUT /api/users/:id - Update user
+router.put("/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, email, password, role, phone, status } = req.body;
+  const client = new MongoClient(Db);
+  
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    // Build update object
+    const updateData = {
+      name,
+      email,
+      username: email, // Keep username in sync with email
+      role,
+      phone,
+      status,
+      updatedAt: new Date()
+    };
+    
+    // Only update password if provided
+    if (password) {
+      updateData.password = password;
+    }
+    
+    const result = await db.collection("users").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ message: "User updated successfully" });
+    
+  } catch (error) {
+    console.error("Update user error:", error);
+    res.status(500).json({ message: "Server error" });
+  } finally {
+    await client.close();
+  }
+});
+
+// DELETE /api/users/:id - Delete user
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const client = new MongoClient(Db);
+  
+  try {
+    await client.connect();
+    const db = client.db("Car_Booking");
+    
+    const result = await db.collection("users").deleteOne(
+      { _id: new ObjectId(id) }
+    );
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ message: "User deleted successfully" });
+    
+  } catch (error) {
+    console.error("Delete user error:", error);
     res.status(500).json({ message: "Server error" });
   } finally {
     await client.close();

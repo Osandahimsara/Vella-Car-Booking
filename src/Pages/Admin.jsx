@@ -5,7 +5,6 @@ import "../CSS/admin.css";
 import totalVehiclesImg from "../images/admin/TotalVehicles.png";
 import totalDriversImg from "../images/admin/TotalDrivers.png";
 import pendingBookingsImg from "../images/admin/PendingBookings.webp";
-import totalBookingsImg from "../images/admin/TotalBookings .webp";
 import completedImg from "../images/admin/Completed.png";
 import cancelledImg from "../images/admin/Cancelled.png";
 import fleetActiveImg from "../images/admin/FleetActive.jpg";
@@ -13,6 +12,7 @@ import addDriverImg from "../images/admin/AddDriver.png";
 import addVehicleImg from "../images/admin/AddVehicle.webp";
 import newBookingImg from "../images/admin/NewBooking.png";
 import viewReportsImg from "../images/admin/ViewReports.png";
+import userManagementImg from "../images/admin/TotalDrivers.png";
 
 const AdminPage = () => {
   const [totalVehicles, setTotalVehicles] = useState(0);
@@ -200,16 +200,6 @@ const cards = [
       image: pendingBookingsImg, 
       trend: pendingBookings > 5 ? "High volume" : "Normal",
       link: "/BookingApproval"
-    },
-    {
-      count: totalBookings,
-      label: "Total Bookings",
-      sublabel: `${completedBookings} Completed`,
-      color: "#0078D4",
-      icon: <i className="fas fa-calendar-check"></i>,
-      image: totalBookingsImg, 
-      trend: "+5 this week",
-      link: "/BookingApproval"
     }
   ];
 
@@ -323,20 +313,94 @@ const cards = [
           borderTop: '1px solid #34495e',
           paddingTop: '15px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <img
-              src="https://gravatar.com/avatar/4474ca42d303761c2901fa819c4f2547"
-              alt="Avatar"
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                marginRight: '10px'
-              }}
-            />
-            <div>
-              <h5 style={{ fontSize: "14px", color: "white", margin: 0 }}>Administrator</h5>
-              <small style={{ color: '#bdc3c7', fontSize: '12px' }}>Online</small>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <img
+                src="https://gravatar.com/avatar/4474ca42d303761c2901fa819c4f2547"
+                alt="Avatar"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  marginRight: '10px'
+                }}
+              />
+              <div>
+                <h5 style={{ fontSize: "14px", color: "white", margin: 0 }}>Osanda</h5>
+                <small style={{ color: '#bdc3c7', fontSize: '12px' }}>Online</small>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                title="Log In"
+                style={{
+                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  marginLeft: '0',
+                  padding: '0',
+                  transition: 'box-shadow 0.2s, transform 0.2s',
+                  outline: 'none',
+                  borderRadius: '50%',
+                  height: '42px',
+                  width: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 12px rgba(255,215,0,0.18)',
+                  position: 'relative',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.boxShadow = '0 4px 18px rgba(255,168,0,0.25)';
+                  e.currentTarget.style.transform = 'scale(1.08)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.boxShadow = '0 2px 12px rgba(255,215,0,0.18)';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                onClick={() => {
+                  window.location.href = '/Login';
+                }}
+              >
+                <i className="fas fa-sign-in-alt" style={{ filter: 'drop-shadow(0 2px 4px #FFA50088)', fontSize: '22px' }}></i>
+              </button>
+              <button
+                title="Log Out"
+                style={{
+                  background: 'linear-gradient(135deg, #D13438 0%, #ff5e62 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  marginLeft: '8px',
+                  padding: '0',
+                  transition: 'box-shadow 0.2s, transform 0.2s',
+                  outline: 'none',
+                  borderRadius: '50%',
+                  height: '44px',
+                  width: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 14px rgba(209,52,56,0.18)',
+                  position: 'relative',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.boxShadow = '0 4px 22px rgba(255,94,98,0.25)';
+                  e.currentTarget.style.transform = 'scale(1.10)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.boxShadow = '0 2px 14px rgba(209,52,56,0.18)';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                onClick={() => {
+                  window.location.href = '/Login';
+                }}
+              >
+                <i className="fas fa-sign-out-alt" style={{ filter: 'drop-shadow(0 2px 4px #D1343888)', fontSize: '24px' }}></i>
+              </button>
             </div>
           </div>
         </div>
@@ -443,7 +507,7 @@ const cards = [
                 fontWeight: '400',
                 lineHeight: '1.4'
               }}>
-                Welcome back, Administrator! 👋<br/>
+                Welcome back, Osanda! 👋<br/>
                 <span style={{ fontSize: '1rem', opacity: 0.8 }}>
                   Here's your car booking business overview
                 </span>
@@ -459,51 +523,79 @@ const cards = [
               flexDirection: 'column', 
               gap: '15px',
               alignItems: 'center',
-              minWidth: '180px'
+              minWidth: '180px',
+              position: 'relative'
             }}>
               {/* Refresh Button */}
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                style={{
-                  background: loading ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.25)',
-                  color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.4)',
-                  padding: '15px 30px',
-                  borderRadius: '30px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  backdropFilter: 'blur(20px)',
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  fontSize: '15px',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  justifyContent: 'center',
-                  boxShadow: '0 8px 30px rgba(255, 255, 255, 0.15)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.target.style.background = 'rgba(255, 255, 255, 0.35)';
-                    e.target.style.transform = 'translateY(-4px) scale(1.02)';
-                    e.target.style.boxShadow = '0 12px 40px rgba(255, 255, 255, 0.25)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading) {
-                    e.target.style.background = 'rgba(255, 255, 255, 0.25)';
-                    e.target.style.transform = 'translateY(0) scale(1)';
-                    e.target.style.boxShadow = '0 8px 30px rgba(255, 255, 255, 0.15)';
-                  }
-                }}
-              >
-                <i className={loading ? "fas fa-spinner fa-spin" : "fas fa-sync-alt"} 
-                   style={{ fontSize: '18px' }}></i>
-                {loading ? 'Updating...' : 'Refresh Data'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'center' }}>
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  style={{
+                    background: loading ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.25)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    padding: '15px 30px',
+                    borderRadius: '30px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    backdropFilter: 'blur(20px)',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    boxShadow: '0 8px 30px rgba(255, 255, 255, 0.15)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.target.style.background = 'rgba(255, 255, 255, 0.35)';
+                      e.target.style.transform = 'translateY(-4px) scale(1.02)';
+                      e.target.style.boxShadow = '0 12px 40px rgba(255, 255, 255, 0.25)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      e.target.style.background = 'rgba(255, 255, 255, 0.25)';
+                      e.target.style.transform = 'translateY(0) scale(1)';
+                      e.target.style.boxShadow = '0 8px 30px rgba(255, 255, 255, 0.15)';
+                    }
+                  }}
+                >
+                  <i className={loading ? "fas fa-spinner fa-spin" : "fas fa-sync-alt"} 
+                    style={{ fontSize: '18px' }}></i>
+                  {loading ? 'Updating...' : 'Refresh Data'}
+                </button>
+                <button
+                  title="Log Out"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '22px',
+                    cursor: 'pointer',
+                    padding: '0 10px',
+                    transition: 'color 0.2s',
+                    outline: 'none',
+                    borderRadius: '50%',
+                    height: '48px',
+                    width: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#D13438'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#fff'}
+                  onClick={() => {
+                    // TODO: Implement logout logic here
+                    window.location.href = '/Login';
+                  }}
+                >
+                  <i className="fas fa-sign-out-alt"></i>
+                </button>
+              </div>
 
               {/* Time Display - Perfectly Centered */}
               <div style={{
@@ -1010,7 +1102,8 @@ const cards = [
               { icon: 'fas fa-car', title: 'Add Vehicle', desc: 'Register new vehicle', path: '/VehicleRegister', color: '#0078D4', image: addVehicleImg },
               { icon: 'fas fa-user-plus', title: 'Add Driver', desc: 'Register new driver', path: '/DriverRegister', color: '#107C10', image: addDriverImg },
               { icon: 'fas fa-calendar-plus', title: 'New Booking', desc: 'Create booking', path: '/bookcar', color: '#FF8C00', image: newBookingImg },
-              { icon: 'fas fa-chart-line', title: 'View Reports', desc: 'Analytics & reports', path: '/Reports', color: '#D13438', image: viewReportsImg }
+              { icon: 'fas fa-chart-line', title: 'View Reports', desc: 'Analytics & reports', path: '/Reports', color: '#D13438', image: viewReportsImg },
+              { icon: 'fas fa-users-cog', title: 'Manage Users', desc: 'User management', path: '/UserManagement', color: '#6f42c1', image: userManagementImg }
             ].map((action, idx) => (
               <Link 
                 key={idx}
