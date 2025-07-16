@@ -9,6 +9,7 @@ import approvedImage from '../images/BookingApproval/approved.png';
 import rejectedImage from '../images/BookingApproval/rejected.png';
 import successImage from '../images/BookingApproval/Success.png';
 import viewImage from '../images/BookingApproval/view.png';
+import editImage from '../images/BookingApproval/edit.png';
 
 const BookingApproval = () => {
   const [bookings, setBookings] = useState([]);
@@ -1562,7 +1563,15 @@ const BookingApproval = () => {
                 background: '#fff3cd',
                 boxShadow: '0 4px 15px rgba(255, 193, 7, 0.3)'
               }}>
-                <i className="fas fa-edit" style={{ fontSize: '30px', color: '#ffc107' }}></i>
+                <img 
+                  src={editImage} 
+                  alt="Edit"
+                  style={{ 
+                    width: '40px', 
+                    height: '40px',
+                    objectFit: 'contain'
+                  }}
+                />
               </div>
               <h3 style={{ margin: '0 0 10px 0', color: '#2c3e50', fontSize: '1.8rem' }}>
                 Edit Booking Details

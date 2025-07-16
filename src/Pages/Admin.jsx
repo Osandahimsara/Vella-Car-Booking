@@ -290,7 +290,7 @@ const cards = [
             { icon: "fas fa-car-side", label: "Manage Vehicles", path: "/vehicles" },
             { icon: "fas fa-id-badge", label: "Manage Drivers", path: "/Drivers" },
             { icon: "fas fa-list", label: "Bookings", path: "/BookingApproval" },
-            { icon: "fas fa-chart-bar", label: "Reports", path: "/reports" }
+            { icon: "fas fa-chart-bar", label: "Reports", path: "/Reports" }
           ].map((item, idx) => (
             <div key={idx} className="nav-button" style={{
               margin: '5px 15px',
@@ -1010,7 +1010,7 @@ const cards = [
               { icon: 'fas fa-car', title: 'Add Vehicle', desc: 'Register new vehicle', path: '/VehicleRegister', color: '#0078D4', image: addVehicleImg },
               { icon: 'fas fa-user-plus', title: 'Add Driver', desc: 'Register new driver', path: '/DriverRegister', color: '#107C10', image: addDriverImg },
               { icon: 'fas fa-calendar-plus', title: 'New Booking', desc: 'Create booking', path: '/bookcar', color: '#FF8C00', image: newBookingImg },
-              { icon: 'fas fa-chart-line', title: 'View Reports', desc: 'Analytics & reports', path: '/reports', color: '#D13438', image: viewReportsImg }
+              { icon: 'fas fa-chart-line', title: 'View Reports', desc: 'Analytics & reports', path: '/Reports', color: '#D13438', image: viewReportsImg }
             ].map((action, idx) => (
               <Link 
                 key={idx}
