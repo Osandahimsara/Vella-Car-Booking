@@ -135,7 +135,8 @@ const UserManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     role: 'user',
@@ -180,8 +181,11 @@ const UserManagement = () => {
   const validateForm = () => {
     const errors = {};
     
-    if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    }
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
     }
     
     if (!formData.email.trim()) {
@@ -210,7 +214,11 @@ const UserManagement = () => {
     
     try {
       setActionLoading(true);
-      await axios.post('http://localhost:8000/api/users', formData);
+      // Combine first and last name for backend
+      const submitData = { ...formData, name: formData.firstName + ' ' + formData.lastName };
+      delete submitData.firstName;
+      delete submitData.lastName;
+      await axios.post('http://localhost:8000/api/users', submitData);
       setShowAddModal(false);
       resetForm();
       fetchUsers();
@@ -266,8 +274,16 @@ const UserManagement = () => {
 
   const openEditModal = (user) => {
     setSelectedUser(user);
+    // Split name into first and last for editing
+    let firstName = '', lastName = '';
+    if (user.name) {
+      const parts = user.name.split(' ');
+      firstName = parts[0] || '';
+      lastName = parts.slice(1).join(' ') || '';
+    }
     setFormData({
-      name: user.name || '',
+      firstName,
+      lastName,
       email: user.email || '',
       password: '',
       role: user.role || 'user',
@@ -284,7 +300,8 @@ const UserManagement = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
       role: 'user',
@@ -318,63 +335,173 @@ const UserManagement = () => {
   return (
     <div style={{ padding: '30px', background: '#f8f9fa', minHeight: '100vh' }}>
       {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0078D4 0%, #005A9E 100%)',
-        borderRadius: '20px',
-        padding: '30px',
-        marginBottom: '30px',
-        color: 'white'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', fontWeight: '800' }}>
-               User Management
-            </h1>
-            <p style={{ fontSize: '1.1rem', margin: 0, opacity: 0.9 }}>
-              Manage system users and their permissions
-            </p>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-            <Link
-              to="/Adminpage"
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                padding: '12px 20px',
-                borderRadius: '25px',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: '600'
-              }}
-            >
-              <i className="fas fa-arrow-left"></i>
-              Back to Dashboard
-            </Link>
-            
-            <button
-              onClick={openAddModal}
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                padding: '12px 20px',
-                borderRadius: '25px',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              <i className="fas fa-plus"></i>
-              Add User
-            </button>
-          </div>
-        </div>
+      {/* Enhanced User Management Header */}
+<div style={{
+  background: 'linear-gradient(135deg, rgba(0, 120, 212, 1) 0%, rgba(0, 90, 158, 0.9) 100%)',
+  borderRadius: '20px',
+  padding: '40px 35px',
+  marginBottom: '35px',
+  boxShadow: '0 15px 35px rgba(0, 120, 212, 0.5)',
+  position: 'relative',
+  overflow: 'hidden'
+}}>
+  {/* Background Pattern */}
+  <div style={{
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'4\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+    opacity: 0.4
+  }}></div>
+
+  <div style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'relative',
+    zIndex: 1,
+    flexWrap: 'wrap',
+    gap: '20px'
+  }}>
+    {/* Left Content */}
+    <div style={{ flex: 1, minWidth: '300px' }}>
+      <div style={{ marginBottom: '15px' }}>
+        <span style={{
+          background: 'rgba(255, 255, 255, 0.2)',
+          color: 'white',
+          padding: '6px 15px',
+          borderRadius: '20px',
+          fontSize: '0.85rem',
+          fontWeight: '600',
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)'
+        }}>
+          User Management
+        </span>
       </div>
+
+      <h1 style={{
+        fontSize: '3rem',
+        color: 'white',
+        margin: '0 0 10px 0',
+        fontWeight: '800',
+        textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+        lineHeight: '1.1'
+      }}>
+        <span style={{
+          background: 'linear-gradient(45deg, #90EE90, #32CD32)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          fontWeight: '900'
+        }}>
+          User
+        </span>{' '}
+        Management
+      </h1>
+
+      <p style={{
+        color: 'rgba(255, 255, 255, 0.9)',
+        fontSize: '1.2rem',
+        margin: '0 0 15px 0',
+        fontWeight: '400',
+        lineHeight: '1.4'
+      }}>
+        Manage system users and their permissions
+        <br />
+        <span style={{
+          fontSize: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '5px'
+        }}>
+          <span style={{
+            fontSize: '0.9rem',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            👁️ View
+          </span>
+          <span style={{
+            fontSize: '0.9rem',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            🛠️ Edit
+          </span>
+          <span style={{
+            fontSize: '0.9rem',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            ❌ Remove
+          </span>
+        </span>
+      </p>
+    </div>
+
+    {/* Right Actions */}
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '15px',
+      alignItems: 'flex-end'
+    }}>
+      <Link
+        to="/Adminpage"
+        style={{
+          background: 'rgba(255, 255, 255, 0.2)',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '25px',
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontWeight: '600',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          backdropFilter: 'blur(10px)'
+        }}
+      >
+        <i className="fas fa-arrow-left"></i>
+        Back to Dashboard
+      </Link>
+
+      <button
+        onClick={openAddModal}
+        style={{
+          background: 'rgba(255, 255, 255, 0.2)',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '25px',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          
+          backdropFilter: 'blur(10px)'
+        }}
+      >
+        <i className="fas fa-plus"></i>
+        Add User
+      </button>
+    </div>
+  </div>
+</div>
+
 
       {/* Filters */}
       <div style={{
@@ -541,11 +668,19 @@ const UserManagement = () => {
         submitText="Add User"
       >
         <FormField
-          label="Full Name"
-          name="name"
-          value={formData.name}
+          label="First Name"
+          name="firstName"
+          value={formData.firstName}
           onChange={handleInputChange}
-          error={formErrors.name}
+          error={formErrors.firstName}
+          required
+        />
+        <FormField
+          label="Last Name"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleInputChange}
+          error={formErrors.lastName}
           required
         />
         <FormField
@@ -606,11 +741,19 @@ const UserManagement = () => {
         submitText="Update User"
       >
         <FormField
-          label="Full Name"
-          name="name"
-          value={formData.name}
+          label="First Name"
+          name="firstName"
+          value={formData.firstName}
           onChange={handleInputChange}
-          error={formErrors.name}
+          error={formErrors.firstName}
+          required
+        />
+        <FormField
+          label="Last Name"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleInputChange}
+          error={formErrors.lastName}
           required
         />
         <FormField

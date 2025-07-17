@@ -13,8 +13,17 @@ import addVehicleImg from "../images/admin/AddVehicle.webp";
 import newBookingImg from "../images/admin/NewBooking.png";
 import viewReportsImg from "../images/admin/ViewReports.png";
 import userManagementImg from "../images/admin/TotalDrivers.png";
+import logoutImg from "../images/admin/log-out.png";
 
 const AdminPage = () => {
+  // Get user name from localStorage
+  let userName = "Admin";
+  try {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.username) {
+      userName = user.username;
+    }
+  } catch (e) {}
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [totalDrivers, setTotalDrivers] = useState(0);
   const [pendingBookings, setPendingBookings] = useState(0);
@@ -507,7 +516,17 @@ const cards = [
                 fontWeight: '400',
                 lineHeight: '1.4'
               }}>
-                Welcome back, Osanda! 👋<br/>
+                {(() => {
+                  if (userName && typeof userName === 'string') {
+                    // If username is an email, use the part before '@'
+                    if (userName.includes('@')) {
+                      return `Welcome back, ${userName.split('@')[0]}! 👋`;
+                    }
+                    // Otherwise, use the first word (first name)
+                    return `Welcome back, ${userName.split(' ')[0]}! 👋`;
+                  }
+                  return 'Welcome back! 👋';
+                })()}<br/>
                 <span style={{ fontSize: '1rem', opacity: 0.8 }}>
                   Here's your car booking business overview
                 </span>
@@ -518,49 +537,47 @@ const cards = [
             </div>
 
             {/* Right Side Actions - Perfectly Aligned */}
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '15px',
-              alignItems: 'center',
-              minWidth: '180px',
-              position: 'relative'
-            }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '15px',
+                alignItems: 'center',
+                minWidth: '180px',
+                position: 'relative'
+              }}>
               {/* Refresh Button */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '11px', width: '110%', justifyContent: 'flex-end' }}>
                 <button
                   onClick={handleRefresh}
                   disabled={loading}
                   style={{
-                    background: loading ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.25)',
-                    color: 'white',
-                    border: '1px solid rgba(255, 255, 255, 0.4)',
-                    padding: '15px 30px',
-                    borderRadius: '30px',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    backdropFilter: 'blur(20px)',
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    fontSize: '15px',
-                    fontWeight: '700',
+                    background: loading ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.18)',
+                    color: '#fff',
+                    border: '2px solid #fff',
+                    borderRadius: '22px',
+                    padding: '12px 30px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    boxShadow: '0 8px 30px rgba(255, 255, 255, 0.15)'
+                    fontWeight: 700,
+                    fontSize: '1.1rem',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+                    transition: 'background 0.2s, box-shadow 0.2s',
+                    outline: 'none',
+                    width: '100%',
+                    justifyContent: 'center',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     if (!loading) {
-                      e.target.style.background = 'rgba(255, 255, 255, 0.35)';
-                      e.target.style.transform = 'translateY(-4px) scale(1.02)';
-                      e.target.style.boxShadow = '0 12px 40px rgba(255, 255, 255, 0.25)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.28)';
+                      e.currentTarget.style.boxShadow = '0 4px 18px rgba(255,255,255,0.18)';
                     }
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     if (!loading) {
-                      e.target.style.background = 'rgba(255, 255, 255, 0.25)';
-                      e.target.style.transform = 'translateY(0) scale(1)';
-                      e.target.style.boxShadow = '0 8px 30px rgba(255, 255, 255, 0.15)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.18)';
+                      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.10)';
                     }
                   }}
                 >
@@ -568,34 +585,7 @@ const cards = [
                     style={{ fontSize: '18px' }}></i>
                   {loading ? 'Updating...' : 'Refresh Data'}
                 </button>
-                <button
-                  title="Log Out"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#fff',
-                    fontSize: '22px',
-                    cursor: 'pointer',
-                    padding: '0 10px',
-                    transition: 'color 0.2s',
-                    outline: 'none',
-                    borderRadius: '50%',
-                    height: '48px',
-                    width: '48px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#D13438'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#fff'}
-                  onClick={() => {
-                    // TODO: Implement logout logic here
-                    window.location.href = '/Login';
-                  }}
-                >
-                  <i className="fas fa-sign-out-alt"></i>
-                </button>
-              </div>
+               </div>
 
               {/* Time Display - Perfectly Centered */}
               <div style={{
@@ -674,6 +664,44 @@ const cards = [
                 gap: '4px',
                 boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
               }}>
+              {/* New Logout Button Below Panels */}
+              <button
+                onClick={() => {
+                  // Clear user session and redirect to login
+                  localStorage.removeItem('currentUser');
+                  window.location.href = '/Login';
+                }}
+                style={{
+                  marginTop: '18px',
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '2px solid #fff',
+                  borderRadius: '22px',
+                  padding: '12px 28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '1.1rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                  outline: 'none',
+                  width: '100%',
+                  justifyContent: 'center',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.28)';
+                  e.currentTarget.style.boxShadow = '0 4px 18px rgba(255,255,255,0.18)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.18)';
+                  e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.10)';
+                }}
+              >
+                <img src={logoutImg} alt="Logout" style={{ width: 28, height: 28, marginRight: 8, filter: 'drop-shadow(0 2px 4px #D1343888)' }} />
+                Log Out
+              </button>
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 

@@ -258,81 +258,176 @@ const Reports = () => {
 
   return (
     <div style={{ padding: '30px', background: '#f8f9fa', minHeight: '100vh' }}>
-      {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0078D4 0%, #005A9E 100%)',
-        borderRadius: '20px',
-        padding: '30px',
-        marginBottom: '30px',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          opacity: 0.4
-        }}></div>
-        
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div>
-              <h1 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', fontWeight: '800' }}>
-                 Reports & Analytics
-              </h1>
-              <p style={{ fontSize: '1.1rem', margin: 0, opacity: 0.9 }}>
-                Business insights and performance metrics for {getDateRangeText()}
-              </p>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-              <Link
-                to="/Adminpage"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  padding: '12px 20px',
-                  borderRadius: '25px',
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '600',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)'
-                }}
-              >
-                <i className="fas fa-arrow-left"></i>
-                Back to Dashboard
-              </Link>
-              
-              <button
-                onClick={exportToExcel}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  padding: '12px 20px',
-                  borderRadius: '25px',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                <i className="fas fa-file-excel"></i>
-                Export Excel
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Enhanced Reports & Analytics Header */}
+<div style={{
+  background: 'linear-gradient(135deg, rgba(0, 120, 212, 1) 0%, rgba(0, 90, 158, 0.9) 100%)',
+  borderRadius: '20px',
+  padding: '40px 35px',
+  marginBottom: '35px',
+  boxShadow: '0 15px 35px rgba(0, 120, 212, 0.5)',
+  position: 'relative',
+  overflow: 'hidden',
+  color: 'white'
+}}>
+  {/* Background Pattern */}
+  <div style={{
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'4\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+    opacity: 0.4
+  }}></div>
+
+  <div style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '20px',
+    position: 'relative',
+    zIndex: 1
+  }}>
+    {/* Left Side Text */}
+    <div style={{ flex: 1, minWidth: '300px' }}>
+      <div style={{ marginBottom: '15px' }}>
+        <span style={{
+          background: 'rgba(255, 255, 255, 0.2)',
+          padding: '6px 15px',
+          borderRadius: '20px',
+          fontSize: '0.85rem',
+          fontWeight: '600',
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)'
+        }}>
+          Reports Section
+        </span>
       </div>
+
+     <h1 style={{
+  fontSize: '3rem',
+  margin: '0 0 10px 0',
+  fontWeight: '800',
+  textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+  lineHeight: '1.1'
+}}>
+  <span style={{
+    background: 'linear-gradient(45deg, #87CEFA, #1E90FF)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    fontWeight: '900'
+  }}>
+    Reports &
+  </span>{' '}
+  <span style={{
+    color: '#f0f0eaff', 
+    fontWeight: '900'
+  }}>
+    Analytics
+  </span>
+</h1>
+
+
+      <p style={{
+        fontSize: '1.2rem',
+        opacity: 0.9,
+        fontWeight: '400',
+        lineHeight: '1.4'
+      }}>
+        Business insights and performance metrics for {getDateRangeText()}
+        <br />
+        <span style={{
+          fontSize: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '5px'
+        }}>
+          <span style={{
+            fontSize: '0.9rem',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            📊 Charts
+          </span>
+          <span style={{
+            fontSize: '0.9rem',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            📁 Summaries
+          </span>
+          <span style={{
+            fontSize: '0.9rem',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            📈 Trends
+          </span>
+        </span>
+      </p>
+    </div>
+
+    {/* Right Side Actions */}
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '15px',
+      alignItems: 'flex-end'
+    }}>
+      <Link
+        to="/Adminpage"
+        style={{
+          background: 'rgba(255, 255, 255, 0.2)',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '25px',
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontWeight: '600',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)'
+        }}
+      >
+        <i className="fas fa-arrow-left"></i>
+        Back to Dashboard
+      </Link>
+
+      <button
+        onClick={exportToExcel}
+        style={{
+          background: 'rgba(255, 255, 255, 0.2)',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '25px',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          backdropFilter: 'blur(10px)'
+        }}
+      >
+        <i className="fas fa-file-excel"></i>
+        Export Excel
+      </button>
+    </div>
+  </div>
+</div>
+
 
       {/* Date Range Selector */}
       <div style={{

@@ -232,11 +232,15 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
     
-    // Create new user
+    // Use first name as username
+    let firstName = name;
+    if (name && typeof name === 'string') {
+      firstName = name.split(' ')[0];
+    }
     const newUser = {
       name,
       email,
-      username: email, // Use email as username
+      username: firstName,
       password,
       role,
       phone,
