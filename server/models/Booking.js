@@ -2,7 +2,7 @@ class Booking {
   constructor({
     bookingId, 
     carType,
-    vehicleDetails, // NEW: Add vehicle details
+    vehicleDetails, 
     pickUp,
     dropOff,
     pickTime,
@@ -18,7 +18,7 @@ class Booking {
   }) {
     this.bookingId = bookingId; 
     this.carType = carType;
-    this.vehicleDetails = vehicleDetails; // NEW: Store complete vehicle info
+    this.vehicleDetails = vehicleDetails; 
     this.pickUp = pickUp;
     this.dropOff = dropOff;
     this.pickTime = pickTime;
