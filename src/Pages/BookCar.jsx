@@ -1132,13 +1132,13 @@ function BookCar() {
                   borderRadius: '8px',
                   marginTop: '15px'
                 }}>
-                  <h6 style={{ marginBottom: '10px', color: '#ff4d30' }}>Vehicle Specifications</h6>
+                  <h2 style={{ marginBottom: '10px', color: '#ff4d30' }}>Vehicle Specifications</h2>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px' }}>
-                    <span><strong>Vehicle Number:</strong> {selectedVehicle.vehicleNumber}</span>
-                    <span><strong>Year:</strong> {selectedVehicle.year}</span>
-                    <span><strong>Fuel Type:</strong> {selectedVehicle.fuelType || 'N/A'}</span>
-                    <span><strong>Brand:</strong> {selectedVehicle.brandName}</span>
-                    <span><strong>Seating Capacity:</strong> {selectedVehicle.seatingCapacity ? `${selectedVehicle.seatingCapacity} seats` : 'N/A'}</span>
+                    <span><strong>Vehicle Number:</strong> <br />{selectedVehicle.vehicleNumber}</span>
+                    <span><strong>Year:</strong> <br />{selectedVehicle.year}</span>
+                    <span><strong>Fuel Type:</strong><br /> {selectedVehicle.fuelType || 'N/A'}</span>
+                    <span><strong>Brand:</strong><br/> {selectedVehicle.brandName}</span>
+                    <span><strong>Seating Capacity:</strong><br /> {selectedVehicle.seatingCapacity ? `${selectedVehicle.seatingCapacity} seats` : 'N/A'}</span>
                   </div>
                 </div>
               </div>

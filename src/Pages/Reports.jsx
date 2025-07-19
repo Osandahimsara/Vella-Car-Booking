@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import '../CSS/admin.css';
+import NewBookingIcon from '../images/admin/NewBooking.png';
+import CompletedIcon from '../images/admin/booking.png';
+import PendingIcon from '../images/admin/PendingBookings.webp';
+import CancelledIcon from '../images/admin/Cancelled.png';
 
 const Reports = () => {
   const [loading, setLoading] = useState(true);
@@ -408,17 +412,20 @@ const Reports = () => {
       <button
         onClick={exportToExcel}
         style={{
+          display: 'inline-flex',        
+          alignItems: 'center',      
+          justifyContent: 'center',         
+          gap: '8px',                    
+          padding: '12px 70px',
           background: 'rgba(255, 255, 255, 0.2)',
           color: 'white',
-          padding: '12px 20px',
           borderRadius: '25px',
           border: '1px solid rgba(255, 255, 255, 0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
           fontWeight: '600',
           cursor: 'pointer',
-          backdropFilter: 'blur(10px)'
+          backdropFilter: 'blur(10px)',
+          whiteSpace: 'nowrap',    
+          textAlign: 'center'    
         }}
       >
         <i className="fas fa-file-excel"></i>
@@ -492,65 +499,66 @@ const Reports = () => {
         </div>
       </div>
 
+      
       {/* Key Metrics */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '20px',
-        marginBottom: '30px'
-      }}>
-        {[
-          { label: 'Total Bookings', value: reportData.totalBookings, color: '#0078D4', icon: 'fas fa-calendar-alt' },
-          { label: 'Completed', value: reportData.completedBookings, color: '#28a745', icon: 'fas fa-check-circle' },
-          { label: 'Pending', value: reportData.pendingBookings, color: '#ffc107', icon: 'fas fa-clock' },
-          { label: 'Rejected', value: reportData.rejectedBookings, color: '#dc3545', icon: 'fas fa-times-circle' }
-        ].map((metric, idx) => (
-          <div key={idx} style={{
-            background: 'white',
-            borderRadius: '15px',
-            padding: '25px',
-            boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-            border: `3px solid ${metric.color}20`,
-            transition: 'transform 0.3s ease'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ 
-                  fontSize: '2rem', 
-                  fontWeight: '800', 
-                  margin: '0 0 8px 0',
-                  color: metric.color
-                }}>
-                  {metric.value}
-                </h3>
-                <p style={{ 
-                  color: '#6c757d', 
-                  margin: 0,
-                  fontSize: '1rem',
-                  fontWeight: '600'
-                }}>
-                  {metric.label}
-                </p>
-              </div>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                background: `${metric.color}20`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px',
-                color: metric.color
-              }}>
-                <i className={metric.icon}></i>
-              </div>
-            </div>
-          </div>
-        ))}
+<div style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+  gap: '20px',
+  marginBottom: '30px'
+}}>
+  {[
+    { label: 'Total Bookings', value: reportData.totalBookings, color: '#0078D4', icon: NewBookingIcon },
+    { label: 'Completed', value: reportData.completedBookings, color: '#28a745', icon: CompletedIcon },
+    { label: 'Pending', value: reportData.pendingBookings, color: '#ffc107', icon: PendingIcon },
+    { label: 'Rejected', value: reportData.rejectedBookings, color: '#dc3545', icon: CancelledIcon }
+  ].map((metric, idx) => (
+    <div key={idx} style={{
+      background: 'white',
+      borderRadius: '15px',
+      padding: '25px',
+      boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
+      border: `3px solid ${metric.color}20`,
+      transition: 'transform 0.3s ease'
+    }}
+    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h3 style={{
+            fontSize: '2rem',
+            fontWeight: '800',
+            margin: '0 0 8px 0',
+            color: metric.color
+          }}>
+            {metric.value}
+          </h3>
+          <p style={{
+            color: '#6c757d',
+            margin: 0,
+            fontSize: '1rem',
+            fontWeight: '600'
+          }}>
+            {metric.label}
+          </p>
+        </div>
+        <div style={{
+          width: '60px',
+          height: '60px',
+          borderRadius: '50%',
+          background: `${metric.color}20`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <img src={metric.icon} alt={metric.label} style={{ width: '30px', height: '30px' }} />
+        </div>
       </div>
+    </div>
+  ))}
+</div>
+
+
 
       {/* Charts and Analytics */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>

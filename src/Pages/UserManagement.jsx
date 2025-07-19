@@ -472,6 +472,7 @@ const UserManagement = () => {
           fontWeight: '600',
           border: '1px solid rgba(255, 255, 255, 0.3)',
           backdropFilter: 'blur(10px)'
+          
         }}
       >
         <i className="fas fa-arrow-left"></i>
@@ -481,18 +482,20 @@ const UserManagement = () => {
       <button
         onClick={openAddModal}
         style={{
+          display: 'inline-flex',        
+          alignItems: 'center',      
+          justifyContent: 'center',         
+          gap: '8px',                    
+          padding: '12px 70px',
           background: 'rgba(255, 255, 255, 0.2)',
           color: 'white',
-          padding: '12px 20px',
           borderRadius: '25px',
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
           fontWeight: '600',
           cursor: 'pointer',
-          
-          backdropFilter: 'blur(10px)'
+          backdropFilter: 'blur(10px)',
+          whiteSpace: 'nowrap',    
+          textAlign: 'center'    
         }}
       >
         <i className="fas fa-plus"></i>
@@ -544,7 +547,7 @@ const UserManagement = () => {
             <option value="all">All Roles</option>
             <option value="admin">Admin</option>
             <option value="user">User</option>
-            <option value="moderator">Moderator</option>
+           
           </select>
         </div>
       </div>
@@ -717,7 +720,7 @@ const UserManagement = () => {
           options={[
             { value: 'user', label: 'User' },
             { value: 'admin', label: 'Admin' },
-            { value: 'moderator', label: 'Moderator' }
+            
           ]}
         />
         <FormField
@@ -789,7 +792,7 @@ const UserManagement = () => {
           options={[
             { value: 'user', label: 'User' },
             { value: 'admin', label: 'Admin' },
-            { value: 'moderator', label: 'Moderator' }
+            
           ]}
         />
         <FormField

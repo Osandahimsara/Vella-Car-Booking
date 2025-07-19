@@ -7,7 +7,6 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  // eslint-disable-next-line no-unused-vars
   const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
 
@@ -16,7 +15,7 @@ const Login = () => {
   const [newPassword, setNewPassword] = useState("");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [showErrorPopup, setShowErrorPopup] = useState(false); // Added this
+  const [showErrorPopup, setShowErrorPopup] = useState(false); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -173,7 +172,7 @@ const handleResetPassword = async () => {
         ) : (
           <div className="panel1 resetpanel">
   <h2 className='resethead'>Reset Your Password</h2><hr />
-  {/* Remove this line: {showError && <p className="error-message">{error}</p>} */}
+  
   
   {step === 1 && (
     <>
