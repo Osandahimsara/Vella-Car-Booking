@@ -13,7 +13,7 @@ function Drivers() {
     const fetchDrivers = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:8000/api/driver');
+        const response = await axios.get('REACT_APP_API_URL=http://13.214.122.184:8000');
         setDrivers(response.data);
         setError(null);
       } catch (err) {
@@ -97,7 +97,7 @@ function Drivers() {
                 <div className="team-container__box__img-div">
                   {driver.driverImageUrl ? (
                     <img 
-                      src={`http://localhost:8000${driver.driverImageUrl}`} 
+                      src={`REACT_APP_API_URL=http://13.214.122.184:8000{driver.driverImageUrl}`} 
                       alt={`${driver.firstName} ${driver.lastName}`}
                       onError={(e) => {
                         e.target.src = '/images/team/default-driver.png'; // Fallback image
