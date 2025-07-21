@@ -236,7 +236,10 @@ const UserManagement = () => {
     
     try {
       setActionLoading(true);
-      const updateData = { ...formData };
+      // Combine first and last name for backend
+      const updateData = { ...formData, name: formData.firstName + ' ' + formData.lastName };
+      delete updateData.firstName;
+      delete updateData.lastName;
       if (!updateData.password) {
         delete updateData.password; // Don't update password if empty
       }

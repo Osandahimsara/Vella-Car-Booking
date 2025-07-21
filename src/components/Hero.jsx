@@ -39,7 +39,7 @@ function Hero() {
             <div className="hero-content__text">
               <h4>Plan your trip now</h4>
               <h1>
-                Save <span>Time</span> with our car Booking
+               Save <span>Time</span> with our car Booking
               </h1>
               
               <div className="hero-content__text__btns">
