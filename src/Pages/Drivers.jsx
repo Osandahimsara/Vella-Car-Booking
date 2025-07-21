@@ -13,7 +13,7 @@ function Drivers() {
     const fetchDrivers = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('REACT_APP_API_URL=http://13.214.122.184:8000');
+        const response = await axios.get('http://localhost:8000/api/driver');
         setDrivers(response.data);
         setError(null);
       } catch (err) {
@@ -97,10 +97,10 @@ function Drivers() {
                 <div className="team-container__box__img-div">
                   {driver.driverImageUrl ? (
                     <img 
-                      src={`REACT_APP_API_URL=http://13.214.122.184:8000{driver.driverImageUrl}`} 
+                      src={`http://localhost:8000${driver.driverImageUrl}`} 
                       alt={`${driver.firstName} ${driver.lastName}`}
                       onError={(e) => {
-                        e.target.src = '/images/team/default-driver.png'; // Fallback image
+                        e.target.src = '/images/team/default-driver.png'; 
                       }}
                     />
                   ) : (
@@ -112,11 +112,11 @@ function Drivers() {
                 <div className="team-container__box__descr">
                   <h3>{driver.firstName} {driver.lastName}</h3>
                   <p className="driver-company">{driver.companyName}</p>
-                  <div className="driver-details">
+                  {/*<div className="driver-details">
                     <span className="driver-contact">
                       <p className="fa-solid fa-phone"></p> {driver.contact}
                     </span>
-                  </div>
+                  </div>*/}
                    {/*  License number display */}
                   {/* 
                   <div className="driver-license">
