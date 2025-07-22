@@ -25,7 +25,7 @@ const AdminDrivers = () => {
   const fetchDrivers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8000/api/driver');
+      const response = await axios.get('http://13.214.122.184:8000/api/driver');
       setDrivers(response.data);
       setError('');
     } catch (err) {
@@ -57,7 +57,7 @@ const AdminDrivers = () => {
     
     try {
       setLoading(true);
-      const response = await axios.delete(`http://localhost:8000/api/driver/${driverToDelete._id}`);
+      const response = await axios.delete(`http://13.214.122.184:8000/api/driver/${driverToDelete._id}`);
       console.log('Delete response:', response.data);
       
       // Close modal and reset state
@@ -92,7 +92,7 @@ const AdminDrivers = () => {
   // Handle status change
   const handleStatusChange = async (driverId, newStatus) => {
     try {
-      await axios.put(`http://localhost:8000/api/driver/${driverId}`, { 
+      await axios.put(`http://13.214.122.184:8000/api/driver/${driverId}`, { 
         status: newStatus 
       });
       
@@ -790,7 +790,7 @@ const AdminDrivers = () => {
                   }}>
                     {driver.driverImageUrl ? (
                       <img
-                        src={`http://localhost:8000${driver.driverImageUrl}`}
+                        src={`http://13.214.122.184:8000${driver.driverImageUrl}`}
                         alt={`${driver.firstName} ${driver.lastName}`}
                         style={{
                           width: '100%',
@@ -1081,7 +1081,7 @@ const AdminDrivers = () => {
                 <div className="vehicle-preview-image">
                   {driverToDelete.driverImageUrl ? (
                     <img
-                      src={`http://localhost:8000${driverToDelete.driverImageUrl}`}
+                      src={`http://13.214.122.184:8000${driverToDelete.driverImageUrl}`}
                       alt={`${driverToDelete.firstName} ${driverToDelete.lastName}`}
                     />
                   ) : (

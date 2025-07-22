@@ -25,7 +25,7 @@ const AdminVehicles = () => {
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8000/api/vehicles');
+      const response = await axios.get('http://13.214.122.184:8000/api/vehicles');
       setVehicles(response.data);
       setError('');
     } catch (err) {
@@ -91,7 +91,7 @@ const AdminVehicles = () => {
   // Handle status change
   const handleStatusChange = async (vehicleId, newStatus) => {
     try {
-      await axios.put(`http://localhost:8000/api/vehicles/${vehicleId}`, { 
+      await axios.put(`http://13.214.122.184:8000/api/vehicles/${vehicleId}`, { 
         status: newStatus 
       });
       
@@ -789,7 +789,7 @@ const AdminVehicles = () => {
                   }}>
                     {vehicle.vehicleImageUrl ? (
                       <img
-                        src={`http://localhost:8000${vehicle.vehicleImageUrl}`}
+                        src={`http://13.214.122.184:8000${vehicle.vehicleImageUrl}`}
                         alt={`${vehicle.brandName} ${vehicle.modelName}`}
                         style={{
                           width: '100%',
@@ -1012,7 +1012,7 @@ const AdminVehicles = () => {
                 <div className="vehicle-preview-image">
                   {vehicleToDelete.vehicleImageUrl ? (
                     <img
-                      src={`http://localhost:8000${vehicleToDelete.vehicleImageUrl}`}
+                      src={`http://13.214.122.184:8000${vehicleToDelete.vehicleImageUrl}`}
                       alt={`${vehicleToDelete.brandName} ${vehicleToDelete.modelName}`}
                     />
                   ) : (

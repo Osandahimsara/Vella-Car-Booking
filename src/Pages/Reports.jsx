@@ -33,15 +33,15 @@ const Reports = () => {
       setLoading(true);
       
       // Fetch all bookings
-      const bookingsResponse = await axios.get('http://localhost:8000/api/bookings');
+      const bookingsResponse = await axios.get('http://13.214.122.184:8000/api/bookings');
       const allBookings = bookingsResponse.data || [];
       
       // Fetch vehicles
-      const vehiclesResponse = await axios.get('http://localhost:8000/api/vehicles');
+      const vehiclesResponse = await axios.get('http://13.214.122.184:8000/api/vehicles');
       const allVehicles = vehiclesResponse.data || [];
       
       // Fetch drivers
-      const driversResponse = await axios.get('http://localhost:8000/api/driver');
+      const driversResponse = await axios.get('http://13.214.122.184:8000/api/driver');
       const allDrivers = driversResponse.data || [];
       
       // Filter bookings based on date range

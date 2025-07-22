@@ -1110,7 +1110,7 @@ function BookCar() {
                 {/* Show vehicle image if available */}
                 {selectedVehicle.vehicleImageUrl && (
                   <img 
-                    src={`http://localhost:8000${selectedVehicle.vehicleImageUrl}`} 
+                    src={`http://13.214.122.184:8000${selectedVehicle.vehicleImageUrl}`} 
                     alt={`${selectedVehicle.brandName} ${selectedVehicle.modelName}`}
                     style={{
                       width: '100%',

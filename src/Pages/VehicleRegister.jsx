@@ -228,7 +228,7 @@ const VehicleRegister = () => {
     formData.append('vehicleImage', vehicleImage);
 
     try {
-      await axios.post('http://localhost:8000/api/vehicles', formData, {
+      await axios.post('http://13.214.122.184:8000/api/vehicles', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
