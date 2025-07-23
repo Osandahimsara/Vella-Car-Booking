@@ -87,7 +87,7 @@ const AdminPage = () => {
       // Fetch vehicles data
       let vehicles = [];
       try {
-        const vehiclesRes = await axios.get('http://13.214.122.184:8000/api/vehicles');
+        const vehiclesRes = await axios.get('http://13.229.216.243:8000/api/vehicles');
         vehicles = vehiclesRes.data || [];
         console.log('✅ Vehicles fetched:', vehicles.length, 'total');
       } catch (vehicleError) {
@@ -97,7 +97,7 @@ const AdminPage = () => {
       // Fetch drivers data
       let drivers = [];
       try {
-        const driversRes = await axios.get('http://13.214.122.184:8000/api/driver');
+        const driversRes = await axios.get('http://13.229.216.243:8000/api/driver');
         drivers = driversRes.data || [];
         console.log('✅ Drivers fetched:', drivers.length, 'total');
       } catch (driverError) {
@@ -107,7 +107,7 @@ const AdminPage = () => {
       // Fetch bookings data
       let bookings = [];
       try {
-        const bookingsRes = await axios.get('http://13.214.122.184:8000/api/bookings');
+        const bookingsRes = await axios.get('http://13.229.216.243:8000/api/bookings');
         bookings = bookingsRes.data || [];
         console.log('✅ Bookings fetched:', bookings.length, 'total');
       } catch (bookingError) {

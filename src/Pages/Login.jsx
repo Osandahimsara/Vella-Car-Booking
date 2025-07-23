@@ -30,7 +30,7 @@ const Login = () => {
     }
 
     try {
-      const response = await axios.post('http://13.214.122.184:8000/api/users/login', {
+      const response = await axios.post('http://13.229.216.243:8000/api/users/login', {
         username,
         password,
       });
@@ -61,11 +61,11 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const response = await axios.post('http://13.214.122.184:8000/api/users/request', { username });
+      const response = await axios.post('http://13.229.216.243:8000/api/users/request', { username });
 
       if (response.data.message === "User Correct") {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-        await axios.post('http://13.214.122.184:8000/api/users/otp', { username, otp: otpCode });
+        await axios.post('http://13.229.216.243:8000/api/users/otp', { username, otp: otpCode });
         setStep(2);
       } else {
         setError("User not found.");
@@ -85,7 +85,7 @@ const Login = () => {
   setShowErrorPopup(false); // Reset popup
   
   try {
-    await axios.post('http://13.214.122.184:8000/api/users/verify', { username, otp });
+    await axios.post('http://13.229.216.243:8000/api/users/verify', { username, otp });
     setStep(3);
   } catch (error) {
     setError("Invalid OTP.");
@@ -104,7 +104,7 @@ const handleResetPassword = async () => {
   setShowErrorPopup(false); // Reset popup
   
   try {
-    await axios.post('http://13.214.122.184:8000/api/users/reset-password', { username, newPassword });
+    await axios.post('http://13.229.216.243:8000/api/users/reset-password', { username, newPassword });
     setShowForgotPassword(false);
     setStep(1);
     setUsername("");

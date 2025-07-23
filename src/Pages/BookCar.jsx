@@ -95,7 +95,7 @@ function BookCar() {
         dropOffTime: dropOffTime
       });
 
-      const response = await axios.get(`http://13.214.122.184:8000/api/vehicles/check-availability?${params}`);
+      const response = await axios.get(`http://13.229.216.243:8000/api/vehicles/check-availability?${params}`);
       console.log('🚗 Vehicle availability response:', response.data);
       
       if (response.data.available) {
@@ -134,7 +134,7 @@ function BookCar() {
         dropOffTime: dropOffTime
       });
 
-      const url = `http://13.214.122.184:8000/api/driver/check-individual?${params}`;
+      const url = `http://13.229.216.243:8000/api/driver/check-individual?${params}`;
       console.log('📞 Making driver availability request to:', url);
       
       const response = await axios.get(url);
@@ -163,7 +163,7 @@ function BookCar() {
     try {
       setVehicleLoading(true);
       console.log('🚗 Fetching available vehicles...');
-      const response = await axios.get('http://13.214.122.184:8000/api/vehicles');
+      const response = await axios.get('http://13.229.216.243:8000/api/vehicles');
       console.log('✅ Vehicles response:', response.data);
       
       const activeVehicles = response.data.filter(vehicle => vehicle.status === 'active');
@@ -191,7 +191,7 @@ function BookCar() {
         dropOffTime: dropOffTime
       });
       
-      const url = `http://13.214.122.184:8000/api/driver/available?${params}`;
+      const url = `http://13.229.216.243:8000/api/driver/available?${params}`;
       console.log('📞 Making request to:', url);
       
       const response = await axios.get(url);
@@ -228,7 +228,7 @@ function BookCar() {
     try {
       setDriverLoading(true);
       console.log('Fetching all drivers...');
-      const response = await axios.get('http://13.214.122.184:8000/api/driver');
+      const response = await axios.get('http://13.229.216.243:8000/api/driver');
       console.log('All drivers response:', response.data);
       
       const activeDrivers = response.data.filter(driver => driver.status === 'active');
@@ -439,7 +439,7 @@ function BookCar() {
     };
 
     try {
-      const response = await axios.post("http://13.214.122.184:8000/api/bookings", bookingData);
+      const response = await axios.post("http://13.229.216.243:8000/api/bookings", bookingData);
       setBookingId(response.data.bookingId); 
       setModal(false);
       setSuccessMessage(true);
@@ -1110,7 +1110,7 @@ function BookCar() {
                 {/* Show vehicle image if available */}
                 {selectedVehicle.vehicleImageUrl && (
                   <img 
-                    src={`http://13.214.122.184:8000${selectedVehicle.vehicleImageUrl}`} 
+                    src={`http://13.229.216.243:8000${selectedVehicle.vehicleImageUrl}`} 
                     alt={`${selectedVehicle.brandName} ${selectedVehicle.modelName}`}
                     style={{
                       width: '100%',

@@ -13,7 +13,7 @@ function Vehicles() {
     const fetchVehicles = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://13.214.122.184:8000/api/vehicles');
+        const response = await axios.get('http://13.229.216.243:8000/api/vehicles');
         setVehicles(response.data);
         setError(null);
       } catch (err) {
@@ -97,7 +97,7 @@ function Vehicles() {
                 <div className="vehicle-card__img-div">
                   {vehicle.vehicleImageUrl ? (
                     <img 
-                      src={`http://13.214.122.184:8000${vehicle.vehicleImageUrl}`} 
+                      src={`http://13.229.216.243:8000${vehicle.vehicleImageUrl}`} 
                       alt={`${vehicle.brandName} ${vehicle.modelName}`}
                       onError={(e) => {
                         e.target.src = '/images/cars/default-car.png';

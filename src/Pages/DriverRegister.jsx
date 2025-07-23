@@ -264,7 +264,7 @@ const DriverRegister = () => {
     formData.append('driverImage', driverImage);
 
     try {
-      await axios.post('http://13.214.122.184:8000/api/driver', formData, {
+      await axios.post('http://13.229.216.243:8000/api/driver', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

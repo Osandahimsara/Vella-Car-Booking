@@ -47,7 +47,7 @@ const BookingApproval = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://13.214.122.184:8000/api/bookings');
+      const response = await axios.get('http://13.229.216.243:8000/api/bookings');
       setBookings(response.data);
       setError('');
     } catch (err) {
@@ -64,12 +64,12 @@ const BookingApproval = () => {
       setLoadingDropdownData(true);
       
       // Fetch vehicles
-      const vehiclesResponse = await axios.get('http://13.214.122.184:8000/api/vehicles');
+      const vehiclesResponse = await axios.get('http://13.229.216.243:8000/api/vehicles');
       console.log('Vehicles API Response:', vehiclesResponse.data);
       setVehicles(vehiclesResponse.data);
       
       // Fetch drivers
-      const driversResponse = await axios.get('http://13.214.122.184:8000/api/driver');
+      const driversResponse = await axios.get('http://13.229.216.243:8000/api/driver');
       console.log('Drivers API Response:', driversResponse.data);
       setDrivers(driversResponse.data);
       
@@ -161,7 +161,7 @@ const BookingApproval = () => {
       }
       
       // API call to update booking
-      const response = await axios.put(`http://13.214.122.184:8000/api/bookings/${selectedBooking._id}`, {
+      const response = await axios.put(`http://13.229.216.243:8000/api/bookings/${selectedBooking._id}`, {
         carType: editedBooking.carType,
         pickUp: editedBooking.pickUp,
         dropOff: editedBooking.dropOff,
@@ -262,7 +262,7 @@ const BookingApproval = () => {
     try {
       setActionLoading(true);
       // eslint-disable-next-line no-unused-vars
-      const response = await axios.put(`http://13.214.122.184:8000/api/bookings/${selectedBooking._id}/approve`);
+      const response = await axios.put(`http://13.229.216.243:8000/api/bookings/${selectedBooking._id}/approve`);
       
       // Update the booking in the local state
       setBookings(prevBookings => 
@@ -292,7 +292,7 @@ const BookingApproval = () => {
     try {
       setActionLoading(true);
       // eslint-disable-next-line no-unused-vars
-      const response = await axios.put(`http://13.214.122.184:8000/api/bookings/${selectedBooking._id}/reject`, {
+      const response = await axios.put(`http://13.229.216.243:8000/api/bookings/${selectedBooking._id}/reject`, {
         reason: rejectionReason || 'Vehicle/driver unavailable for selected dates'
       });
       

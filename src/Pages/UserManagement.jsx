@@ -153,7 +153,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://13.214.122.184:8000/api/users');
+      const response = await axios.get('http://13.229.216.243:8000/api/users');
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -218,7 +218,7 @@ const UserManagement = () => {
       const submitData = { ...formData, name: formData.firstName + ' ' + formData.lastName };
       delete submitData.firstName;
       delete submitData.lastName;
-      await axios.post('http://13.214.122.184:8000/api/users', submitData);
+      await axios.post('http://13.229.216.243:8000/api/users', submitData);
       setShowAddModal(false);
       resetForm();
       fetchUsers();
@@ -243,7 +243,7 @@ const UserManagement = () => {
       if (!updateData.password) {
         delete updateData.password; // Don't update password if empty
       }
-      await axios.put(`http://13.214.122.184:8000/api/users/${selectedUser._id}`, updateData);
+      await axios.put(`http://13.229.216.243:8000/api/users/${selectedUser._id}`, updateData);
       setShowEditModal(false);
       resetForm();
       fetchUsers();
@@ -258,7 +258,7 @@ const UserManagement = () => {
   const handleDeleteUser = async () => {
     try {
       setActionLoading(true);
-      await axios.delete(`http://13.214.122.184:8000/api/users/${selectedUser._id}`);
+      await axios.delete(`http://13.229.216.243:8000/api/users/${selectedUser._id}`);
       setShowDeleteModal(false);
       setSelectedUser(null);
       fetchUsers();
