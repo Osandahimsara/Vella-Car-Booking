@@ -118,7 +118,6 @@ const AdminPage = () => {
       const totalVehicleCount = vehicles.length;
       const totalDriverCount = drivers.length;
       const totalBookingCount = bookings.length;
-      
       const activeVehicleCount = vehicles.filter(v => v.status === 'available' || v.status === 'active').length;
       const activeDriverCount = drivers.filter(d => d.status === 'active').length;
       const pendingBookingCount = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length;
@@ -314,14 +313,14 @@ const cards = [
           ))}
         </div>
 
-        <div id="nav-footer" style={{ 
+        {/*<div id="nav-footer" style={{ 
           position: 'absolute', 
           bottom: '20px', 
           left: '20px', 
           right: '20px',
           borderTop: '1px solid #34495e',
           paddingTop: '15px'
-        }}>
+         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <img
@@ -412,7 +411,7 @@ const cards = [
               </button>
             </div>
           </div>
-        </div>
+        </div>*/}
       </div>
 
       {/* Enhanced Dashboard */}
@@ -502,12 +501,11 @@ const cards = [
                   backgroundClip: 'text',
                   fontWeight: '900'
                 }}>
-                  Driver
+                  Admin
                 </span>{' '}
                 Dashboard
               </h1>
                 
-
               {/* Subtitle */}
               <p style={{ 
                 color: 'rgba(255, 255, 255, 0.9)', 
