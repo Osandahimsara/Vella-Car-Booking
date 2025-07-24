@@ -20,7 +20,7 @@ function Footer() {
             </ul>
 
             <ul className="footer-content__2">
-              <li>Company</li>
+              <li>Companys</li>
               <li>
                 <a href="#home">Vella</a>
               </li>
